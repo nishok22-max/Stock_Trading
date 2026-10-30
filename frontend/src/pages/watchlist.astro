@@ -1,0 +1,11 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import WatchlistTable from '../components/WatchlistTable.astro';
+import { getWatchlist, DEFAULT_USER_ID } from '../scripts/api.js';
+
+const watchlist = await getWatchlist(DEFAULT_USER_ID);
+---
+
+<MainLayout title="Watchlist Management" activeNav="watchlist">
+  <WatchlistTable watchlist={watchlist} userId={DEFAULT_USER_ID} />
+</MainLayout>
