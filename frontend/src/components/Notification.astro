@@ -1,0 +1,118 @@
+---
+interface Props {
+  id?: string;
+  type?: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+  dismissible?: boolean;
+}
+
+const {
+  id,
+  type = 'info',
+  message,
+  dismissible = true,
+} = Astro.props;
+
+const icons = {
+  success: '✓',
+  error: '✕',
+  warning: '⚠',
+  info: 'ℹ',
+};
+---
+
+<div class:list={['notification-banner', type]} id={id} role="alert">
+  <span class="notif-icon" aria-hidden="true">{icons[type]}</span>
+  <div class="notif-content">
+    <p class="notif-text">{message}</p>
+  </div>
+  {dismissible && (
+    <button class="notif-dismiss" aria-label="Dismiss notification" onclick="this.parentElement.remove()">
+      ✕
+    </button>
+  )}
+</div>
+
+<style>
+  .notification-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+  }
+  .notif-icon {
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: grid;
+    place-content: center;
+    font-size: 0.75rem;
+    shrink: 0;
+  }
+  .notif-content {
+    flex: 1;
+  }
+  .notif-text {
+    margin: 0;
+    line-height: 1.4;
+  }
+  .notif-dismiss {
+    background: transparent;
+    border: none;
+    font-size: 0.75rem;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 0.25rem;
+    border-radius: 4px;
+  }
+  .notif-dismiss:hover {
+    opacity: 1;
+  }
+
+  /* Variant styling */
+  .notification-banner.info {
+    background: #f0f7ff;
+    border-color: #d0e4ff;
+    color: #1e40af;
+  }
+  .notification-banner.info .notif-icon {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .notification-banner.success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+  }
+  .notification-banner.success .notif-icon {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .notification-banner.warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+  .notification-banner.warning .notif-icon {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  .notification-banner.error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+  }
+  .notification-banner.error .notif-icon {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+</style>
+

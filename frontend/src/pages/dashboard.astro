@@ -1,0 +1,661 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import DashboardCard from '../components/DashboardCard.astro';
+import Notification from '../components/Notification.astro';
+---
+
+<DashboardLayout title="Dashboard" activePage="dashboard" description="Real-time stock portfolio and market performance dashboard.">
+  <!-- Error Banner if API Fails -->
+  <div id="dashboard-error-banner" hidden>
+    <Notification id="dash-error" type="error" message="Unable to connect to the backend trading service. Ensure Spring Boot is running on port 8080." />
+  </div>
+
+  <!-- User Welcome & Status Strip -->
+  <div class="welcome-strip">
+    <div class="welcome-copy">
+      <div class="welcome-tag-row">
+        <span class="welcome-badge">TRADING CONSOLE</span>
+        <span id="market-status-pill" class="market-pill">
+          <span class="status-indicator"></span>
+          <span id="market-status-label">Checking Market…</span>
+        </span>
+      </div>
+      <h1 class="welcome-title">Welcome back, <span id="user-display-name">Trader</span></h1>
+      <p class="welcome-subtitle">Here is your live portfolio valuation and market overview for today.</p>
+    </div>
+
+    <div class="quick-action-bar">
+      <a href="/" class="btn-action primary">
+        <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-1">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        New Trade
+      </a>
+      <a href="/orders" class="btn-action secondary">View Orders</a>
+      <a href="/trades" class="btn-action secondary">Trade History</a>
+      <button id="refresh-dashboard-btn" class="btn-action tertiary" title="Refresh Dashboard Data">
+        ↻ Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- 4 Core Dashboard Metric Cards -->
+  <section class="metrics-grid" aria-label="Key Performance Indicators">
+    <DashboardCard
+      id="card-balance"
+      label="Available Cash"
+      value="Loading…"
+      subtext="Ready for new buy orders"
+      loading={true}
+      icon="💰"
+    />
+
+    <DashboardCard
+      id="card-portfolio-val"
+      label="Portfolio Value"
+      value="Loading…"
+      subtext="Current market value of shares"
+      loading={true}
+      icon="📊"
+    />
+
+    <DashboardCard
+      id="card-invested"
+      label="Total Invested"
+      value="Loading…"
+      subtext="Cumulative cost of holdings"
+      loading={true}
+      icon="💼"
+    />
+
+    <DashboardCard
+      id="card-pnl"
+      label="Total Profit / Loss"
+      value="Loading…"
+      subtext="Net return on investments"
+      loading={true}
+      icon="📈"
+    />
+  </section>
+
+  <!-- Secondary Metrics: Blocked Cash, Holdings Count, Total Orders -->
+  <div class="secondary-metrics-strip">
+    <div class="sec-metric-item">
+      <span class="sec-label">Blocked in Orders</span>
+      <strong id="sec-blocked" class="sec-value font-mono">₹0.00</strong>
+    </div>
+    <div class="sec-metric-item">
+      <span class="sec-label">Stock Positions</span>
+      <strong id="sec-holdings-count" class="sec-value font-mono">0</strong>
+    </div>
+    <div class="sec-metric-item">
+      <span class="sec-label">Total Orders</span>
+      <strong id="sec-total-orders" class="sec-value font-mono">0</strong>
+    </div>
+    <div class="sec-metric-item">
+      <span class="sec-label">Pending Orders</span>
+      <strong id="sec-pending-orders" class="sec-value font-mono">0</strong>
+    </div>
+  </div>
+
+  <!-- 2-Column Split: Market Summary & Recent Activity -->
+  <div class="dashboard-split-grid">
+    <!-- Left Column: Market Movers / Quotes -->
+    <div class="content-panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Market Overview</h2>
+          <span class="panel-subtitle" id="market-stocks-count">Available Stocks</span>
+        </div>
+        <a href="/" class="panel-link">Trade Stocks →</a>
+      </div>
+
+      <div class="table-scroll-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Sector</th>
+              <th class="text-right">Price</th>
+              <th class="text-right">Change</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="market-summary-rows">
+            <tr>
+              <td colspan="5" class="table-state-cell">Loading market data…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right Column: Recent Orders Activity -->
+    <div class="content-panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Recent Orders</h2>
+          <span class="panel-subtitle">Latest activity across this account</span>
+        </div>
+        <a href="/orders" class="panel-link">View All →</a>
+      </div>
+
+      <div class="table-scroll-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Type</th>
+              <th class="text-right">Qty</th>
+              <th class="text-right">Price</th>
+              <th class="text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody id="recent-orders-rows">
+            <tr>
+              <td colspan="5" class="table-state-cell">Loading recent orders…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+  .welcome-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.75rem;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .welcome-copy {
+    max-width: 650px;
+  }
+  .welcome-tag-row {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.5rem;
+  }
+  .welcome-badge {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #276148;
+    background: #e3ede5;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+  .market-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #5d6b5e;
+    background: #edf1eb;
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+  }
+  .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #9aa599;
+  }
+  .market-pill.open .status-indicator {
+    background: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  }
+  .welcome-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #17261d;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .welcome-subtitle {
+    font-size: 0.875rem;
+    color: #6e7c6d;
+    margin-top: 0.375rem;
+  }
+  .quick-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.5rem 0.875rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .btn-action.primary {
+    background: #276148;
+    color: #ffffff;
+  }
+  .btn-action.primary:hover {
+    background: #1c4835;
+  }
+  .btn-action.secondary {
+    background: #ffffff;
+    color: #276148;
+    border: 1px solid #d4ddd2;
+  }
+  .btn-action.secondary:hover {
+    background: #f4f7f2;
+    border-color: #bcc8b9;
+  }
+  .btn-action.tertiary {
+    background: #f1f4ed;
+    color: #4b584a;
+    border: 1px solid #dbe2d7;
+    cursor: pointer;
+  }
+  .btn-action.tertiary:hover {
+    background: #e4ece0;
+  }
+
+  /* Metric cards grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 1024px) {
+    .metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .metrics-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Secondary metrics strip */
+  .secondary-metrics-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: #ffffff;
+    border: 1px solid #dfe5db;
+    border-radius: 10px;
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 1.75rem;
+    gap: 1rem;
+  }
+  @media (max-width: 640px) {
+    .secondary-metrics-strip {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .sec-metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .sec-label {
+    font-size: 0.6875rem;
+    color: #7b887a;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+  .sec-value {
+    font-size: 1.125rem;
+    color: #1a2720;
+    font-weight: 600;
+  }
+
+  /* Split grid */
+  .dashboard-split-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 900px) {
+    .dashboard-split-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .content-panel {
+    background: #ffffff;
+    border: 1px solid #dfe5db;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #edf1ea;
+  }
+  .panel-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a2720;
+    margin: 0;
+  }
+  .panel-subtitle {
+    font-size: 0.6875rem;
+    color: #7b887a;
+  }
+  .panel-link {
+    font-size: 0.75rem;
+    color: #276148;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .panel-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Tables */
+  .table-scroll-container {
+    overflow-x: auto;
+    width: 100%;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+  .data-table th {
+    background: #f8faf6;
+    color: #6d786c;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid #e2e8de;
+    text-align: left;
+  }
+  .data-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f0f4ee;
+    color: #24342c;
+  }
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+  .data-table tr:hover td {
+    background: #fbfdfa;
+  }
+  .text-right {
+    text-align: right;
+  }
+  .text-center {
+    text-align: center;
+  }
+  .table-state-cell {
+    text-align: center;
+    padding: 2.5rem 1rem !important;
+    color: #7d8a7c;
+  }
+
+  /* Order status badges */
+  .badge-status {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+  .badge-status.EXECUTED {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .badge-status.PENDING {
+    background: #fef3c7;
+    color: #b45309;
+  }
+  .badge-status.CANCELLED {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+  .badge-status.REJECTED {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  /* Side badges */
+  .badge-side {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 0.15rem 0.35rem;
+    border-radius: 3px;
+  }
+  .badge-side.BUY {
+    background: #ecfdf5;
+    color: #047857;
+  }
+  .badge-side.SELL {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+
+  .positive-text {
+    color: #15803d;
+  }
+  .negative-text {
+    color: #b91c1c;
+  }
+  .table-trade-btn {
+    display: inline-block;
+    background: #276148;
+    color: #ffffff;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+  }
+  .table-trade-btn:hover {
+    background: #1c4835;
+  }
+</style>
+
+<script>
+  import { getDashboardSummary, getMarketSummary } from '../lib/api.js';
+  import { formatINR, formatPrice, formatPercentage, formatDateTime, formatProfitLoss } from '../lib/formatters.js';
+
+  const $ = (id: string) => document.getElementById(id);
+
+  async function loadDashboard() {
+    const userId = sessionStorage.getItem('ledger-user') || '11111111-1111-4111-8111-111111111111';
+
+    try {
+      $('dashboard-error-banner')!.hidden = true;
+
+      // Parallel fetch dashboard summary and market summary
+      const [dash, market] = await Promise.all([
+        getDashboardSummary(userId),
+        getMarketSummary().catch(() => null),
+      ]);
+
+      // 1. Update Welcome strip & user name
+      if ($('user-display-name')) $('user-display-name')!.textContent = dash.name || 'Trader';
+      if ($('nav-user-name')) $('nav-user-name')!.textContent = dash.name || 'Trader';
+      if ($('nav-avatar') && dash.name) {
+        $('nav-avatar')!.textContent = dash.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('');
+      }
+
+      // Market status indicators
+      const isMarketOpen = dash.marketOpen;
+      const marketPill = $('market-status-pill');
+      if (marketPill) {
+        marketPill.classList.toggle('open', isMarketOpen);
+        if ($('market-status-label')) {
+          $('market-status-label')!.textContent = isMarketOpen ? 'Market Open (NSE/BSE)' : 'Market Closed';
+        }
+      }
+      const navMarket = $('nav-market-status');
+      if (navMarket) {
+        navMarket.classList.toggle('open', isMarketOpen);
+        if ($('nav-market-text')) {
+          $('nav-market-text')!.textContent = isMarketOpen ? 'Market Open' : 'Market Closed';
+        }
+      }
+
+      // 2. Populate 4 Main Metric Cards
+      updateCard('card-balance', formatINR(dash.availableBalance), null, null, false);
+      updateCard('card-portfolio-val', formatINR(dash.currentPortfolioValue), null, null, false);
+      updateCard('card-invested', formatINR(dash.totalInvestedValue), null, null, false);
+
+      const pnlInfo = formatProfitLoss(dash.totalProfitLoss);
+      const pnlPct = formatPercentage(dash.totalProfitLossPercentage);
+      const pnlTrend = dash.totalProfitLoss > 0 ? 'up' : dash.totalProfitLoss < 0 ? 'down' : 'neutral';
+      updateCard('card-pnl', pnlInfo.text, pnlPct, pnlTrend, false);
+
+      // 3. Populate Secondary Metrics
+      if ($('sec-blocked')) $('sec-blocked')!.textContent = formatINR(dash.blockedBalance);
+      if ($('sec-holdings-count')) $('sec-holdings-count')!.textContent = String(dash.totalHoldings);
+      if ($('sec-total-orders')) $('sec-total-orders')!.textContent = String(dash.totalOrders);
+      if ($('sec-pending-orders')) $('sec-pending-orders')!.textContent = String(dash.pendingOrders);
+
+      // 4. Populate Market Summary Table
+      renderMarketTable(market);
+
+      // 5. Populate Recent Orders Table
+      renderRecentOrdersTable(dash.recentOrders);
+
+      // Footer sync
+      if ($('footer-sync-time')) {
+        $('footer-sync-time')!.textContent = `Last synchronized: ${formatDateTime(dash.lastUpdated || new Date())}`;
+      }
+    } catch (error) {
+      console.error('Failed to load dashboard:', error);
+      $('dashboard-error-banner')!.hidden = false;
+      markCardsError();
+    }
+  }
+
+  function updateCard(cardId: string, val: string, change: string | null, trend: 'up' | 'down' | 'neutral' | null, loading: boolean) {
+    const card = $(cardId);
+    if (!card) return;
+    const valueEl = card.querySelector('.card-value');
+    if (valueEl) {
+      valueEl.textContent = val;
+      valueEl.classList.toggle('skeleton', loading);
+    }
+    const changeEl = card.querySelector('.card-change');
+    if (changeEl && change) {
+      changeEl.textContent = `${trend === 'up' ? '▲' : trend === 'down' ? '▼' : '•'} ${change}`;
+      changeEl.className = `card-change ${trend || 'neutral'}`;
+    }
+  }
+
+  function markCardsError() {
+    ['card-balance', 'card-portfolio-val', 'card-invested', 'card-pnl'].forEach(id => {
+      const card = $(id);
+      if (!card) return;
+      const valueEl = card.querySelector('.card-value');
+      if (valueEl) {
+        valueEl.classList.remove('skeleton');
+        valueEl.textContent = '—';
+      }
+    });
+  }
+
+  function renderMarketTable(market: any) {
+    const tbody = $('market-summary-rows');
+    if (!tbody) return;
+
+    if (!market || !market.topStocks || market.topStocks.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="table-state-cell">No market quote data available.</td></tr>';
+      return;
+    }
+
+    if ($('market-stocks-count')) {
+      $('market-stocks-count')!.textContent = `${market.totalStocks} Active Stocks Available`;
+    }
+
+    tbody.innerHTML = market.topStocks.map((stock: any) => {
+      const isUp = stock.priceChange > 0;
+      const isDown = stock.priceChange < 0;
+      const changeClass = isUp ? 'positive-text' : isDown ? 'negative-text' : '';
+      const sign = isUp ? '+' : '';
+
+      return `
+        <tr>
+          <td>
+            <strong>${stock.symbol}</strong>
+            <div style="font-size: 0.6875rem; color: #7b887a;">${stock.companyName}</div>
+          </td>
+          <td style="color: #637062;">${stock.sector || 'Equities'}</td>
+          <td class="text-right font-mono font-medium">${formatINR(stock.currentPrice)}</td>
+          <td class="text-right font-mono ${changeClass}">
+            ${sign}₹${formatPrice(stock.priceChange)} (${formatPercentage(stock.percentageChange)})
+          </td>
+          <td class="text-center">
+            <a href="/?symbol=${stock.symbol}" class="table-trade-btn">Trade</a>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderRecentOrdersTable(orders: any[]) {
+    const tbody = $('recent-orders-rows');
+    if (!tbody) return;
+
+    if (!orders || orders.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="table-state-cell">
+            <p style="margin: 0 0 0.5rem 0;">No orders placed yet.</p>
+            <a href="/" style="color: #276148; font-weight: 600; text-decoration: underline;">Go to Trading Desk to place your first trade →</a>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = orders.map((order: any) => {
+      const priceDisplay = order.executionPrice ? formatINR(order.executionPrice) : order.limitPrice ? formatINR(order.limitPrice) : 'Market';
+      return `
+        <tr>
+          <td>
+            <strong>${order.stockSymbol}</strong>
+            <div style="font-size: 0.6875rem; color: #839082;">${formatDateTime(order.createdAt)}</div>
+          </td>
+          <td>
+            <span class="badge-side ${order.side}">${order.side}</span>
+            <span style="font-size: 0.6875rem; color: #6a7869; margin-left: 0.25rem;">${order.orderType}</span>
+          </td>
+          <td class="text-right font-mono font-semibold">${order.quantity}</td>
+          <td class="text-right font-mono">${priceDisplay}</td>
+          <td class="text-center">
+            <span class="badge-status ${order.status}">${order.status}</span>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Initial load
+  loadDashboard();
+
+  // Attach refresh button
+  $('refresh-dashboard-btn')?.addEventListener('click', () => {
+    loadDashboard();
+  });
+
+  // Auto-refresh every 5 seconds
+  setInterval(loadDashboard, 5000);
+</script>
+
