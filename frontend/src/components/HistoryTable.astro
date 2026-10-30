@@ -1,0 +1,11 @@
+---
+interface Props { kind: 'orders' | 'trades'; filter?: string }
+const {kind, filter='ALL'}=Astro.props;
+---
+<section class="panel history-panel" data-filter={filter}>
+  <div class="panel-heading"><div><p class="eyebrow">YOUR ACTIVITY</p><h2>{kind==='trades'?'Trade ledger':filter==='PENDING'?'Waiting for the right price':filter==='EXECUTED'?'Completed orders':'Order history'}</h2></div><button type="button" id="refresh-history" class="button secondary">Refresh</button></div>
+  {kind==='orders' && <nav aria-label="Order status" class="history-tabs"><a href="/orders" aria-current={filter==='ALL'?'page':undefined}>All orders</a><a href="/orders/pending" aria-current={filter==='PENDING'?'page':undefined}>Pending</a><a href="/orders/executed" aria-current={filter==='EXECUTED'?'page':undefined}>Executed</a></nav>}
+  <div id="history-summary" class="history-summary">Loading activity…</div>
+  <div class="table-scroll"><table id="history-table"><thead id="history-head"></thead><tbody id="history-body"><tr><td class="empty-cell">Loading activity…</td></tr></tbody></table></div>
+</section>
+<dialog id="cancel-dialog" class="review-dialog" aria-labelledby="cancel-title"><div class="dialog-top"><span class="eyebrow">MANAGE YOUR ORDER</span><button type="button" class="icon-button" id="close-cancel" aria-label="Close cancellation">×</button></div><h2 id="cancel-title">Cancel this order?</h2><p class="dialog-subtitle" id="cancel-description"></p><p class="alert neutral">Reserved cash or shares will be released. An order that has already executed cannot be cancelled.</p><p class="inline-error" id="cancel-error" role="alert" hidden></p><button type="button" id="confirm-cancel" class="button primary full">Cancel order</button></dialog>
