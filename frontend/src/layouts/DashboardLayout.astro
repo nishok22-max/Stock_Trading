@@ -1,0 +1,131 @@
+---
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
+import '../styles/global.css';
+import Navbar from '../components/Navbar.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+interface Props {
+  title: string;
+  activePage?: string;
+  description?: string;
+}
+
+const {
+  title,
+  activePage = 'dashboard',
+  description = 'Stock Trading Dashboard - Track portfolio, market movements, and trade history.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title} · StockTrader</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body data-page={activePage}>
+    <a href="#dashboard-main" class="skip-link">Skip to content</a>
+
+    <div class="layout-wrapper">
+      <Sidebar activePage={activePage} />
+
+      <div class="layout-main-area">
+        <Navbar title={title} activePage={activePage} />
+
+        <main id="dashboard-main" class="dashboard-content">
+          <slot />
+        </main>
+
+        <footer class="dashboard-footer">
+          <div class="footer-left">
+            <span>STOCKTRADER PLATFORM</span>
+            <span class="footer-dot">•</span>
+            <span>MEMBER 5 DASHBOARD INTEGRATION</span>
+          </div>
+          <div class="footer-right">
+            <span id="footer-sync-time">Live Platform Status: Active</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Global Toast Container -->
+    <div id="toast" role="status" class="toast" hidden></div>
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 10px;
+    background: #276148;
+    color: white;
+    padding: 8px 16px;
+    z-index: 100;
+    transition: top 0.2s;
+  }
+  .skip-link:focus {
+    top: 10px;
+  }
+  .layout-wrapper {
+    display: flex;
+    min-height: 100vh;
+  }
+  .layout-main-area {
+    margin-left: 230px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: #f7f9f6;
+  }
+  @media (max-width: 768px) {
+    .layout-main-area {
+      margin-left: 0;
+    }
+  }
+  .dashboard-content {
+    flex: 1;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+  }
+  @media (max-width: 640px) {
+    .dashboard-content {
+      padding: 1rem;
+    }
+  }
+  .dashboard-footer {
+    border-top: 1px solid #e2e8de;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.6875rem;
+    color: #7b887a;
+    background: #ffffff;
+  }
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+  }
+  .footer-dot {
+    color: #a3b0a2;
+  }
+  @media (max-width: 640px) {
+    .dashboard-footer {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+  }
+</style>
+

@@ -5,7 +5,8 @@ import '../styles/global.css';
 interface Props { title: string; page: string; description: string }
 const { title, page, description } = Astro.props;
 const links = [
-  { href: '/', label: 'Trading desk', key: 'desk', glyph: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z' },
+  { href: '/dashboard', label: 'Dashboard', key: 'dashboard', glyph: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z' },
+  { href: '/', label: 'Trading desk', key: 'desk', glyph: 'M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM13 2v7h7' },
   { href: '/orders/pending', label: 'Pending orders', key: 'pending', glyph: 'M12 8v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0' },
   { href: '/orders/executed', label: 'Executed orders', key: 'executed', glyph: 'm5 12 4 4L19 6' },
   { href: '/orders', label: 'All orders', key: 'orders', glyph: 'M8 3H4v18h16V3h-4M8 3v4h8V3zM8 12h8M8 16h5' },
