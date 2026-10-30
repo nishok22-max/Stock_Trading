@@ -1,0 +1,97 @@
+---
+interface HoldingItem {
+  stockSymbol: string;
+  quantity: number;
+  averagePurchasePrice: number;
+  currentMarketPrice: number;
+  investedValue: number;
+  currentValue: number;
+  unrealizedProfitLoss: number;
+  returnPercentage: number;
+  allocationPercentage: number;
+}
+
+interface Props {
+  holdings?: HoldingItem[];
+}
+
+const { holdings = [] } = Astro.props;
+
+const formatINR = (val: number) =>
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
+---
+
+<div class="card">
+  <div class="table-header-row">
+    <div>
+      <h3>Consolidated Holdings</h3>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+        Weighted average positions & live profit/loss breakdown
+      </p>
+    </div>
+    <span style="font-size: 0.85rem; color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 0.25rem 0.65rem; border-radius: 6px;">
+      {holdings.length} Positions Active
+    </span>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Stock</th>
+          <th>Quantity</th>
+          <th>Avg. Buy Price</th>
+          <th>Market Price</th>
+          <th>Invested Value</th>
+          <th>Current Value</th>
+          <th>Unrealized P&L</th>
+          <th>Return %</th>
+          <th>Weight</th>
+        </tr>
+      </thead>
+      <tbody id="holdings-table-body">
+        {holdings.length === 0 ? (
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+              No active holdings found in your portfolio.
+            </td>
+          </tr>
+        ) : (
+          holdings.map((h) => {
+            const isProfit = h.unrealizedProfitLoss >= 0;
+            return (
+              <tr>
+                <td>
+                  <div class="stock-cell">
+                    <span class="stock-tag">{h.stockSymbol}</span>
+                  </div>
+                </td>
+                <td class="mono-num">{h.quantity}</td>
+                <td class="mono-num">{formatINR(h.averagePurchasePrice)}</td>
+                <td class="mono-num">{formatINR(h.currentMarketPrice)}</td>
+                <td class="mono-num">{formatINR(h.investedValue)}</td>
+                <td class="mono-num" style="font-weight: 600; color: var(--text-primary);">{formatINR(h.currentValue)}</td>
+                <td class={`mono-num ${isProfit ? 'text-profit' : 'text-loss'}`} style="font-weight: 600;">
+                  {(isProfit ? "+" : "") + formatINR(h.unrealizedProfitLoss)}
+                </td>
+                <td>
+                  <span class={isProfit ? 'badge-profit' : 'badge-loss'}>
+                    {(isProfit ? "+" : "") + Number(h.returnPercentage).toFixed(2)}%
+                  </span>
+                </td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="mono-num" style="font-size: 0.8rem;">{Number(h.allocationPercentage).toFixed(1)}%</span>
+                    <div style="flex: 1; min-width: 40px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;">
+                      <div style={`width: ${Math.min(h.allocationPercentage, 100)}%; height: 100%; background: var(--accent-primary);`}></div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            );
+          })
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>

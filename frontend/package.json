@@ -1,0 +1,26 @@
+{
+  "name": "member-three-trading-desk",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "astro check && astro build",
+    "preview": "astro preview --host 127.0.0.1",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "^5.2.8",
+    "@fontsource-variable/geist-mono": "^5.2.7",
+    "@tailwindcss/vite": "^4.1.0",
+    "astro": "7.4.4",
+    "chart.js": "^4.4.4",
+    "tailwindcss": "^4.1.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@playwright/test": "1.64.1",
+    "@types/node": "^26.6.6",
+    "typescript": "^5.9.3"
+  }
+}

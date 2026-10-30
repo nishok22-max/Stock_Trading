@@ -1,0 +1,230 @@
+---
+interface Props {
+  activePage?: string;
+}
+
+const { activePage = 'dashboard' } = Astro.props;
+
+const navItems = [
+  { href: '/dashboard', label: 'Dashboard', key: 'dashboard', glyph: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z' },
+  { href: '/', label: 'Trading Desk', key: 'desk', glyph: 'M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM13 2v7h7' },
+  { href: '/orders', label: 'All Orders', key: 'orders', glyph: 'M8 3H4v18h16V3h-4M8 3v4h8V3zM8 12h8M8 16h5' },
+  { href: '/orders/pending', label: 'Pending Orders', key: 'pending', glyph: 'M12 8v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0' },
+  { href: '/orders/executed', label: 'Executed Orders', key: 'executed', glyph: 'm5 12 4 4L19 6' },
+  { href: '/trades', label: 'Trade History', key: 'trades', glyph: 'M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4' },
+];
+---
+
+<aside class="dashboard-sidebar">
+  <a href="/dashboard" class="sidebar-brand" aria-label="Stock Trading Home">
+    <span class="brand-badge"><span></span>ST</span>
+    <span class="brand-text">stock<span class="brand-highlight">trader</span></span>
+  </a>
+
+  <div class="sidebar-section-label">MAIN WORKSPACE</div>
+
+  <nav class="sidebar-nav" aria-label="Primary Navigation">
+    {navItems.map(item => (
+      <a
+        href={item.href}
+        class:list={['sidebar-nav-item', { active: activePage === item.key }]}
+        aria-current={activePage === item.key ? 'page' : undefined}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="nav-icon" aria-hidden="true">
+          <path d={item.glyph} stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span class="nav-label">{item.label}</span>
+      </a>
+    ))}
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="account-selector-box">
+      <label for="sidebar-user-select" class="selector-label">DEMO TRADER</label>
+      <select id="sidebar-user-select" class="user-select" aria-label="Switch User Account">
+        <option value="11111111-1111-4111-8111-111111111111">Aarav Mehta (Approved)</option>
+        <option value="22222222-2222-4222-8222-222222222222">Mira Desai (Blocked)</option>
+        <option value="33333333-3333-4333-8333-333333333333">Rohan Iyer (Unapproved)</option>
+      </select>
+    </div>
+
+    <div class="sidebar-user-info">
+      <div class="avatar" id="sidebar-avatar">AM</div>
+      <div class="user-details">
+        <strong id="sidebar-username">Aarav Mehta</strong>
+        <span id="sidebar-account-type">Personal Trading Account</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .dashboard-sidebar {
+    width: 230px;
+    background: #1a2720;
+    color: #c0ccc2;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    padding: 1.5rem 1rem 1rem 1rem;
+    border-right: 1px solid #2a3b31;
+    transition: transform 0.2s ease;
+  }
+  @media (max-width: 768px) {
+    .dashboard-sidebar {
+      transform: translateX(-100%);
+    }
+    .dashboard-sidebar.open {
+      transform: translateX(0);
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+    }
+  }
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    text-decoration: none;
+    margin-bottom: 2rem;
+    padding-left: 0.5rem;
+  }
+  .brand-badge {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    background: #2b4234;
+    color: #c9e3d2;
+    border-radius: 8px;
+    display: grid;
+    place-content: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+  .brand-badge span {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #4ade80;
+  }
+  .brand-text {
+    font-size: 1.1875rem;
+    font-weight: 700;
+    color: #f2f7ef;
+    letter-spacing: -0.02em;
+  }
+  .brand-highlight {
+    color: #74bf8f;
+  }
+  .sidebar-section-label {
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    color: #778b7c;
+    padding-left: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 8px;
+    color: #bccac0;
+    text-decoration: none;
+    font-size: 0.8125rem;
+    transition: all 0.15s ease;
+  }
+  .sidebar-nav-item:hover {
+    background: #27392e;
+    color: #ffffff;
+  }
+  .sidebar-nav-item.active {
+    background: #a9cdb6;
+    color: #17261d;
+    font-weight: 600;
+  }
+  .nav-icon {
+    width: 18px;
+    height: 18px;
+    shrink: 0;
+  }
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #28392f;
+  }
+  .account-selector-box {
+    margin-bottom: 1rem;
+  }
+  .selector-label {
+    display: block;
+    font-size: 0.5625rem;
+    letter-spacing: 0.1em;
+    color: #7c9081;
+    margin-bottom: 0.375rem;
+    font-weight: 600;
+  }
+  .user-select {
+    width: 100%;
+    background: #24352b;
+    border: 1px solid #34473c;
+    color: #dbe4dd;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .sidebar-user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #bed1a9;
+    color: #273b22;
+    display: grid;
+    place-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .user-details strong {
+    display: block;
+    font-size: 0.75rem;
+    color: #e5ece5;
+    font-weight: 600;
+  }
+  .user-details span {
+    display: block;
+    font-size: 0.625rem;
+    color: #8b9c8f;
+  }
+</style>
+
+<script>
+  // Sync selected user across sessions
+  const userSelect = document.getElementById('sidebar-user-select') as HTMLSelectElement | null;
+  const currentActor = sessionStorage.getItem('ledger-user') || '11111111-1111-4111-8111-111111111111';
+
+  if (userSelect) {
+    userSelect.value = currentActor;
+    userSelect.addEventListener('change', () => {
+      sessionStorage.setItem('ledger-user', userSelect.value);
+      window.location.reload();
+    });
+  }
+</script>
+

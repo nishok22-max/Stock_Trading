@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -35,3 +36,19 @@ build/
 .DS_Store
 Thumbs.db
 
+=======
+.tools/
+.tools-*.zip
+backend/target/
+frontend/node_modules/
+frontend/dist/
+frontend/.astro/
+frontend/test-results/
+frontend/playwright-report/
+tmp/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+>>>>>>> origin/main
