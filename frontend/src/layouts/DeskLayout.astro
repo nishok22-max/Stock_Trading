@@ -1,0 +1,60 @@
+---
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
+import '../styles/global.css';
+interface Props { title: string; page: string; description: string }
+const { title, page, description } = Astro.props;
+const links = [
+  { href: '/', label: 'Trading desk', key: 'desk', glyph: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z' },
+  { href: '/orders/pending', label: 'Pending orders', key: 'pending', glyph: 'M12 8v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0' },
+  { href: '/orders/executed', label: 'Executed orders', key: 'executed', glyph: 'm5 12 4 4L19 6' },
+  { href: '/orders', label: 'All orders', key: 'orders', glyph: 'M8 3H4v18h16V3h-4M8 3v4h8V3zM8 12h8M8 16h5' },
+  { href: '/trades', label: 'Trade history', key: 'trades', glyph: 'M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4' },
+];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Simulated stock trading. Place, track and manage market and limit orders." />
+    <title>{title} · Ledger</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body data-page={page}>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <aside class="sidebar">
+      <a href="/" class="brand" aria-label="Ledger home"><span class="brand-mark">L<span></span></span>ledger<span class="brand-period">.</span></a>
+      <div class="workspace-label">YOUR WORKSPACE</div>
+      <nav aria-label="Main navigation">
+        {links.map(link => <a href={link.href} class:list={['nav-link', { active: page === link.key }]} aria-current={page === link.key ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d={link.glyph} stroke-linecap="round" stroke-linejoin="round" /></svg>
+          {link.label}{link.key === 'pending' && <span id="pending-count" class="nav-count">0</span>}
+        </a>)}
+      </nav>
+      <div class="sidebar-note"><span class="note-line"></span><p>A space to practice.<br /><strong>Every trade is simulated.</strong></p><span class="small-muted">No real funds or market connection.</span></div>
+      <div class="profile"><span class="avatar" id="profile-initials">AM</span><div><strong id="profile-name">Demo account</strong><span>Personal trading account</span></div></div>
+    </aside>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="breadcrumb">Workspace <span>/</span> <strong>{title}</strong></div>
+        <div class="topbar-right"><span class="simulation-tag">PAPER TRADING</span><span id="market-status" class="market-status">Connecting<span class="status-dot"></span></span></div>
+      </header>
+      <main id="main" class="main-content">
+        <div class="page-heading"><div><p class="eyebrow">YOUR NEXT MOVE</p><h1>{title}</h1><p class="page-description">{description}</p></div><label class="account-switch"><span>Demo account</span><select id="account-select" aria-label="Demo account"><option value="11111111-1111-4111-8111-111111111111">Aarav Mehta</option></select></label></div>
+        <div id="connection-error" class="alert error" role="alert" hidden></div>
+        <div id="demo-banner" class="alert neutral" hidden>Extended demo session is enabled. Quotes and trades are simulated; normal market hours are overridden.</div>
+        <section class="balance-strip" aria-label="Account balances" aria-busy="true" id="balances">
+          <div><span class="metric-label">Available to trade</span><strong id="available-balance" class="metric-value skeleton">—</strong><span class="metric-note">Ready for your next order</span></div>
+          <div><span class="metric-label">Blocked for orders</span><strong id="blocked-balance" class="metric-value skeleton">—</strong><span class="metric-note">Released on cancellation</span></div>
+          <div><span class="metric-label">Pending orders</span><strong id="pending-metric" class="metric-value skeleton">—</strong><span class="metric-note">Maximum 25 at a time</span></div>
+          <div class="account-state"><span class="metric-label">Account status</span><strong id="account-status" class="status-label">Loading</strong><span class="metric-note" id="account-status-note">Checking account eligibility</span></div>
+        </section>
+        <slot />
+        <footer class="page-footer"><span>LEDGER / TRADING ENGINE</span><span id="sync-status">Connecting to your trading account…</span></footer>
+      </main>
+    </div>
+    <div id="toast" role="status" class="toast" hidden></div>
+    <script src="../scripts/app.ts"></script>
+  </body>
+</html>

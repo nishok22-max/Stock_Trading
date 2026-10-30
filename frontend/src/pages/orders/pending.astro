@@ -1,0 +1,5 @@
+---
+import DeskLayout from '../../layouts/DeskLayout.astro';
+import HistoryTable from '../../components/HistoryTable.astro';
+---
+<DeskLayout title="Pending orders" page="pending" description="Your limit orders wait here until the price meets your terms."><HistoryTable kind="orders" filter="PENDING" /></DeskLayout>

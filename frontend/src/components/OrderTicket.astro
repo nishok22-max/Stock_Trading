@@ -1,0 +1,29 @@
+<section class="panel ticket-panel" aria-labelledby="ticket-heading">
+  <div class="ticket-title"><div><p class="eyebrow">PLACE AN ORDER</p><h2 id="ticket-heading">Order ticket</h2></div><span class="ticket-decoration" aria-hidden="true">↗</span></div>
+  <div class="ticket-stock"><div><strong id="ticket-symbol">TCS</strong><span id="ticket-company">Tata Consultancy Services</span></div><strong id="ticket-price" class="mono">—</strong></div>
+  <form id="order-form">
+    <div class="side-switch" role="group" aria-label="Order side"><button type="button" id="side-buy" aria-pressed="true" class="selected">Buy</button><button type="button" id="side-sell" aria-pressed="false">Sell</button></div>
+    <div class="form-field"><label for="order-type">Order type</label><select id="order-type"><option value="MARKET">Market order</option><option value="LIMIT">Limit order</option></select><p id="type-help">Executes immediately at the current simulated price.</p></div>
+    <div class="form-grid"><div class="form-field"><label for="quantity">Quantity</label><input id="quantity" type="number" min="1" max="1000" step="1" value="1" required /><p>1–1,000 whole shares</p></div><div class="form-field" id="limit-field" hidden><label for="limit-price">Limit price (₹)</label><input id="limit-price" type="number" min="0.01" max="999999999.99" step="0.01" /><p>Price per share</p></div></div>
+    <p class="holding-hint" id="holding-hint">Checking your holdings…</p>
+    <div class="ticket-estimate"><div><span>Estimated trade value</span><strong id="estimated-value">—</strong></div><div><span>Brokerage + GST</span><strong id="estimated-charges">—</strong></div><div class="estimate-total"><span id="estimate-label">Estimated total</span><strong id="estimated-total">—</strong></div></div>
+    <p id="form-error" class="inline-error" role="alert" hidden></p>
+    <button class="button primary full" id="review-order" type="submit" disabled>Review buy order <span aria-hidden="true">→</span></button>
+    <p class="ticket-disclaimer">Review the price and charges before confirming.<br />Limit orders expire at the end of the session.</p>
+  </form>
+</section>
+<dialog id="review-dialog" class="review-dialog" aria-labelledby="review-title">
+  <div class="dialog-top"><span class="eyebrow">ONE LAST LOOK</span><button type="button" id="close-review" class="icon-button" aria-label="Close order review">×</button></div>
+  <h2 id="review-title">Review your order</h2><p class="dialog-subtitle" id="review-subtitle"></p>
+  <dl class="review-details" id="review-details"></dl>
+  <div class="alert neutral" id="review-message"></div>
+  <p class="inline-error" id="review-error" role="alert" hidden></p>
+  <button type="button" id="confirm-order" class="button primary full">Confirm order</button>
+  <p class="dialog-footnote">Execution uses the current price when the server accepts your order. Reservations and charges are recalculated.</p>
+</dialog>
+<dialog id="confirmation-dialog" class="review-dialog" aria-labelledby="confirmation-title">
+  <div class="dialog-top"><span class="eyebrow">ORDER UPDATE</span><button type="button" id="close-confirmation" class="icon-button" aria-label="Close confirmation">×</button></div>
+  <div class="confirmation-mark" id="confirmation-mark" aria-hidden="true">✓</div><h2 id="confirmation-title">Order executed</h2><p id="confirmation-message" class="dialog-subtitle"></p>
+  <dl class="review-details" id="confirmation-details"></dl>
+  <a id="confirmation-link" class="button primary full" href="/orders/executed">View executed orders</a>
+</dialog>

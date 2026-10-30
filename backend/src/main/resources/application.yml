@@ -1,0 +1,17 @@
+server:
+  port: ${PORT:8080}
+spring:
+  application:
+    name: trading-engine
+  jackson:
+    deserialization:
+      accept-float-as-int: false
+      fail-on-unknown-properties: true
+trading:
+  demo-enabled: ${TRADING_DEMO_ENABLED:true}
+  demo-open-market: ${TRADING_DEMO_OPEN_MARKET:false}
+  scheduler-enabled: ${TRADING_SCHEDULER_ENABLED:true}
+  poll-delay-ms: 1000
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

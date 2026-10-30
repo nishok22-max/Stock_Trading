@@ -1,0 +1,84 @@
+{
+  "info": {
+    "name": "Member 3 — Order Management & Trading Engine",
+    "description": "Run the backend in an open market session (or with -DemoOpen). Requests use a trusted demo X-User-Id. Market and limit BUY/SELL, details, histories, cancellation, price crossing and validation examples. Placement business rejections return 201 with REJECTED status. Run the pending sequence before the price-crossing sequence.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080"},
+    {"key": "userId", "value": "11111111-1111-4111-8111-111111111111"},
+    {"key": "orderId", "value": ""},
+    {"key": "pendingOrderId", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Market and account",
+      "item": [
+        {"name": "Market status and stocks", "request": {"method": "GET", "url": "{{baseUrl}}/api/trading/market"}},
+        {"name": "Account and holdings", "request": {"method": "GET", "header": [{"key": "X-User-Id", "value": "{{userId}}"}], "url": "{{baseUrl}}/api/trading/account"}},
+        {"name": "Demo users", "request": {"method": "GET", "url": "{{baseUrl}}/api/demo/users"}}
+      ]
+    },
+    {
+      "name": "Market orders",
+      "item": [
+        {
+          "name": "Preview market buy",
+          "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}, {"key": "Content-Type", "value": "application/json"}], "url": "{{baseUrl}}/api/orders/preview", "body": {"mode": "raw", "raw": "{\n  \"symbol\": \"INFY\",\n  \"side\": \"BUY\",\n  \"type\": \"MARKET\",\n  \"quantity\": 2\n}", "options": {"raw": {"language": "json"}}}}
+        },
+        {
+          "name": "Place market BUY",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Intent created', () => pm.response.to.have.status(201));", "const o = pm.response.json(); pm.collectionVariables.set('orderId', o.id);", "pm.test('Executed', () => pm.expect(o.status).to.eql('EXECUTED'));", "pm.test('Reservation consumed', () => pm.expect(o.reservedCash).to.eql(0));"]}}],
+          "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}, {"key": "Content-Type", "value": "application/json"}], "url": "{{baseUrl}}/api/orders", "body": {"mode": "raw", "raw": "{\n  \"symbol\": \"INFY\",\n  \"side\": \"BUY\",\n  \"type\": \"MARKET\",\n  \"quantity\": 2\n}", "options": {"raw": {"language": "json"}}}}
+        },
+        {"name": "Get order details", "request": {"method": "GET", "header": [{"key": "X-User-Id", "value": "{{userId}}"}], "url": "{{baseUrl}}/api/orders/{{orderId}}"}},
+        {
+          "name": "Place market SELL",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Executed sell', () => { pm.response.to.have.status(201); pm.expect(pm.response.json().status).to.eql('EXECUTED'); });"]}}],
+          "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}, {"key": "Content-Type", "value": "application/json"}], "url": "{{baseUrl}}/api/orders", "body": {"mode": "raw", "raw": "{\"symbol\":\"INFY\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":1}", "options": {"raw": {"language": "json"}}}}
+        }
+      ]
+    },
+    {
+      "name": "Pending limit and cancellation",
+      "item": [
+        {
+          "name": "Place pending BUY limit",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["const o = pm.response.json(); pm.collectionVariables.set('pendingOrderId', o.id);", "pm.test('Pending with reserved cash', () => { pm.response.to.have.status(201); pm.expect(o.status).to.eql('PENDING'); pm.expect(o.reservedCash).to.be.above(0); });"]}}],
+          "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}, {"key": "Content-Type", "value": "application/json"}], "url": "{{baseUrl}}/api/orders", "body": {"mode": "raw", "raw": "{\"symbol\":\"INFY\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":2,\"limitPrice\":1450.00}", "options": {"raw": {"language": "json"}}}}
+        },
+        {
+          "name": "Cancel pending order",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Cancelled and reservation released', () => { pm.response.to.have.status(200); const o = pm.response.json(); pm.expect(o.status).to.eql('CANCELLED'); pm.expect(o.reservedCash).to.eql(0); pm.expect(o.reservedShares).to.eql(0); });"]}}],
+          "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}], "url": "{{baseUrl}}/api/orders/{{pendingOrderId}}/cancel"}
+        },
+        {
+          "name": "Repeated cancellation must conflict",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Terminal order cannot cancel', () => pm.response.to.have.status(409));"]}}],
+          "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}], "url": "{{baseUrl}}/api/orders/{{pendingOrderId}}/cancel"}
+        },
+        {
+          "name": "Place pending SELL limit",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["const o = pm.response.json(); pm.collectionVariables.set('pendingOrderId', o.id);", "pm.test('Shares reserved', () => { pm.response.to.have.status(201); pm.expect(o.status).to.eql('PENDING'); pm.expect(o.reservedShares).to.eql(1); });"]}}],
+          "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}, {"key": "Content-Type", "value": "application/json"}], "url": "{{baseUrl}}/api/orders", "body": {"mode": "raw", "raw": "{\"symbol\":\"TCS\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"quantity\":1,\"limitPrice\":3600.00}", "options": {"raw": {"language": "json"}}}}
+        }
+      ]
+    },
+    {
+      "name": "Cross the pending sell limit (demo only)",
+      "request": {"method": "PUT", "header": [{"key": "Content-Type", "value": "application/json"}], "url": "{{baseUrl}}/api/demo/stocks/TCS/price", "body": {"mode": "raw", "raw": "{\"price\":3610.00}", "options": {"raw": {"language": "json"}}}}
+    },
+    {"name": "Order history", "request": {"method": "GET", "header": [{"key": "X-User-Id", "value": "{{userId}}"}], "url": "{{baseUrl}}/api/orders/user/{{userId}}"}},
+    {"name": "Trade history", "request": {"method": "GET", "header": [{"key": "X-User-Id", "value": "{{userId}}"}], "url": "{{baseUrl}}/api/trades/user/{{userId}}"}},
+    {
+      "name": "Oversell rejected and recorded",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Rejected oversell', () => { pm.response.to.have.status(201); pm.expect(pm.response.json().status).to.eql('REJECTED'); pm.expect(pm.response.json().reason).to.include('INSUFFICIENT_SHARES'); });"]}}],
+      "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}, {"key": "Content-Type", "value": "application/json"}], "url": "{{baseUrl}}/api/orders", "body": {"mode": "raw", "raw": "{\"symbol\":\"TCS\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":1000}", "options": {"raw": {"language": "json"}}}}
+    },
+    {
+      "name": "Fractional quantity returns 400",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Invalid whole quantity', () => pm.response.to.have.status(400));"]}}],
+      "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}, {"key": "Content-Type", "value": "application/json"}], "url": "{{baseUrl}}/api/orders", "body": {"mode": "raw", "raw": "{\"symbol\":\"TCS\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":1.5}", "options": {"raw": {"language": "json"}}}}
+    }
+  ]
+}
