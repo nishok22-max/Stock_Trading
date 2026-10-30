@@ -59,6 +59,7 @@
   .market-status { @apply flex items-center gap-2 text-[11px] text-[#6d7969]; }
   .status-dot { @apply w-1.5 h-1.5 rounded-full bg-[#98a092]; }
   .market-status.open .status-dot { @apply bg-[#5a8c6c]; }
+  .market-next-open { @apply text-[9px] text-[#8b9389] whitespace-nowrap; }
   .main-content { @apply max-w-[1496px] mx-auto px-10 pt-9 pb-5; }
   .page-heading { @apply flex items-center justify-between gap-5 mb-8; }
   .eyebrow { @apply text-[9px] tracking-[1.8px] font-medium text-[#84927b] mb-2; }
@@ -164,6 +165,24 @@
   .toast { @apply fixed bottom-6 right-6 max-w-[calc(100%-48px)] rounded-lg px-5 py-4 bg-[#2a4330] text-[#eef5e6] text-[12px] shadow-lg z-40; }
   .skeleton { @apply animate-pulse rounded bg-[#e9eee0] text-transparent w-fit min-w-20; }
   .stock-skeleton { @apply h-12 w-[calc(100%-24px)] my-5 mx-3; }
+  .stock-details { @apply mt-6; }
+  .stock-detail-heading { @apply items-start; }
+  .stock-open-link { @apply shrink-0; }
+  .stock-detail-summary { @apply grid grid-cols-3 gap-4 px-6 pb-6; }
+  .stock-detail-summary > div { @apply min-w-0 border-l border-[#e5e9df] pl-4; }
+  .stock-detail-summary > div:first-child { @apply border-0 pl-0; }
+  .stock-detail-summary strong { @apply block font-mono text-[15px] font-normal truncate; }
+  .stock-detail-summary strong.detail-price { @apply text-[18px]; }
+  .detail-subline { @apply block text-[10px] text-[#899487] mt-1.5; }
+  .stock-detail-summary .status-badge { @apply mt-2; }
+  .stock-chart-wrap { @apply border-t border-[#edf0e7] px-6 py-5; }
+  .stock-chart-title { @apply flex justify-between items-start gap-4 mb-4; }
+  .stock-chart-title .eyebrow { @apply mb-1; }
+  .stock-chart-title h3 { @apply text-[13px] font-medium; }
+  .stock-chart-canvas { @apply relative h-[250px] w-full; }
+  .stock-chart-canvas canvas { width: 100% !important; height: 100% !important; }
+  .chart-empty { @apply grid min-h-[150px] place-content-center text-center text-[11px] text-[#899487] border border-dashed border-[#dfe5d9] rounded-lg px-4; }
+  .stock-details .alert { @apply mt-3 mb-0; }
   .skip-link { @apply fixed -top-20 left-4 bg-white p-3 z-50 rounded-lg; }
   .skip-link:focus { @apply top-4; }
 }
@@ -212,6 +231,11 @@
   .metric-note { @apply text-[8px]; }
   .stock-copy span { @apply max-w-[175px]; }
   .panel-heading,.ticket-title { @apply px-4 pt-5; }
+  .stock-detail-summary { @apply grid-cols-2 px-4; }
+  .stock-detail-summary > div:nth-child(3) { @apply border-0 pl-0; }
+  .stock-chart-wrap { @apply px-4; }
+  .stock-chart-title { @apply flex-col; }
+  .market-next-open { @apply text-[8px]; }
   .panel-heading .quiet-tag { @apply text-[8px]; }
   .search-field { @apply mx-4; }
   .market-table-head { @apply px-4; }

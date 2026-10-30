@@ -117,3 +117,11 @@ test('trade history, empty search and connection failure states', async ({ page 
   await page.route('**/api/trading/account', route => route.abort()); await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   await expect(page.locator('#connection-error')).toBeVisible();
 });
+
+test('stock details page renders backend quote and recorded history', async ({ page }) => {
+  await page.goto('/stocks?symbol=INFY');
+  await expect(page.locator('#stock-detail-symbol')).toHaveText('INFY');
+  await expect(page.locator('#stock-detail-company')).toHaveText('Infosys Limited');
+  await expect(page.locator('#stock-chart-caption')).toContainText('recorded price');
+  await expect(page.locator('#stock-price-chart')).toBeVisible();
+});

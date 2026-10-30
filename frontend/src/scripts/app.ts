@@ -1,10 +1,15 @@
+import Chart from 'chart.js/auto';
+
 type Side = 'BUY' | 'SELL';
 type OrderType = 'MARKET' | 'LIMIT';
 type Status = 'PENDING' | 'EXECUTED' | 'CANCELLED' | 'REJECTED';
 interface Account { userId: string; name: string; kycApproved: boolean; blocked: boolean; availableBalance: number; blockedBalance: number }
 interface Holding { symbol: string; quantity: number; reservedQuantity: number; averageBuyPrice: number }
-interface Stock { symbol: string; companyName: string; sector: string; price: number; previousClose: number; active: boolean }
-interface Market { open: boolean; demoOpenMarket: boolean; serverTime: string; sessionClose: string; stocks: Stock[] }
+interface Stock { symbol: string; companyName: string; sector: string; price: number; previousClose: number; priceChange: number; percentageChange: number; active: boolean; status: 'ACTIVE' | 'SUSPENDED' }
+interface StockResponse { symbol: string; companyName: string; sector: string; currentPrice: number; previousClose: number; priceChange: number; percentageChange: number; status: 'ACTIVE' | 'SUSPENDED' }
+interface StockPrice { symbol: string; price: number; previousPrice: number; timestamp: string }
+interface MarketStatus { open: boolean; serverTime: string; sessionClose: string; nextOpeningTime: string | null }
+interface Market { open: boolean; demoOpenMarket: boolean; serverTime: string; sessionClose: string; nextOpeningTime: string | null; stocks: Stock[] }
 interface Payload { symbol: string; side: Side; type: OrderType; quantity: number; limitPrice?: number }
 interface Order extends Payload { id: string; userId: string; status: Status; reservedCash: number; reservedShares: number; executionPrice: number | null; brokerage: number; gst: number; tradeId: string | null; reason: string | null; createdAt: string; updatedAt: string; expiresAt: string }
 interface Trade { id: string; orderId: string; symbol: string; side: Side; quantity: number; price: number; value: number; brokerage: number; gst: number; totalCharges: number; netCashFlow: number; realizedPnl: number; executedAt: string }
@@ -22,7 +27,7 @@ const base = (import.meta.env.PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
 const page = document.body.dataset.page;
 let actor = sessionStorage.getItem('ledger-user') || '11111111-1111-4111-8111-111111111111';
 let side: Side = 'BUY';
-let symbol = 'TCS';
+let symbol = new URLSearchParams(location.search).get('symbol')?.toUpperCase() || 'TCS';
 let market: Market | null = null;
 let holdings: Holding[] = [];
 let orders: Order[] = [];
@@ -35,6 +40,10 @@ let submitting = false;
 let cancelId: string | null = null;
 let toastTimer: ReturnType<typeof setTimeout>;
 let lastOrders = '';
+let stockDetailsRequest = 0;
+let stockHistoryFingerprint = '';
+let stockHistorySymbol = '';
+let priceChart: Chart | null = null;
 
 class ApiError extends Error { constructor(message: string, public status: number) { super(message); } }
 async function api<T>(path: string, init: RequestInit = {}, user = actor): Promise<T> {
@@ -64,13 +73,33 @@ async function refresh(force = false) {
   const generation = epoch; const user = actor;
   const task = (async () => {
     try {
-      const [a, m, o, t] = await Promise.all([
+      const [a, tradingMarket, stockResponses, marketStatus, o, t] = await Promise.all([
         api<{ account: Account; holdings: Holding[] }>('/api/trading/account', {}, user),
         api<Market>('/api/trading/market', {}, user),
+        api<StockResponse[]>('/api/stocks', {}, user),
+        api<MarketStatus>('/api/market/status', {}, user),
         api<Order[]>(`/api/orders/user/${user}`, {}, user),
         page === 'trades' ? api<Trade[]>(`/api/trades/user/${user}`, {}, user) : Promise.resolve([] as Trade[]),
       ]);
       if (generation !== epoch) return;
+      const m: Market = {
+        ...tradingMarket,
+        open: marketStatus.open,
+        serverTime: marketStatus.serverTime,
+        sessionClose: marketStatus.sessionClose,
+        nextOpeningTime: marketStatus.nextOpeningTime,
+        stocks: stockResponses.map(stock => ({
+          symbol: stock.symbol,
+          companyName: stock.companyName,
+          sector: stock.sector,
+          price: stock.currentPrice,
+          previousClose: stock.previousClose,
+          priceChange: stock.priceChange,
+          percentageChange: stock.percentageChange,
+          active: stock.status === 'ACTIVE',
+          status: stock.status,
+        })),
+      };
       const oldPrice = market?.stocks.find(s => s.symbol === symbol)?.price;
       holdings = a.holdings; market = m; orders = o; online = true;
       if (review && oldPrice !== undefined && oldPrice !== m.stocks.find(s => s.symbol === symbol)?.price && !submitting) {
@@ -89,7 +118,8 @@ async function refresh(force = false) {
       set('profile-name', a.account.name); set('profile-initials', a.account.name.split(' ').map(x => x[0]).slice(0, 2).join(''));
       const status = $('market-status')!; status.replaceChildren(node('span', m.open ? 'Market open' : 'Market closed'), node('span', '', 'status-dot')); status.classList.toggle('open', m.open);
       set('sync-status', `Updated ${time(m.serverTime)} · Refreshes every 5s`);
-      renderStocks(); renderHoldings(); estimate();
+      set('market-next-open', m.open ? `Closes ${time(m.sessionClose)}` : m.nextOpeningTime ? `Opens ${time(m.nextOpeningTime)}` : '');
+      renderStocks(); renderStockDetails(); renderHoldings(); estimate();
       const serialized = JSON.stringify(page === 'trades' ? t : o);
       if (serialized !== lastOrders) { renderHistory(t); lastOrders = serialized; }
     } catch (e) {
@@ -111,19 +141,94 @@ function renderStocks() {
     const row = node('button', '', 'stock-row' + (stock.symbol === symbol ? ' selected' : ''));
     row.type = 'button'; row.dataset.symbol = stock.symbol; row.setAttribute('aria-pressed', String(stock.symbol === symbol));
     const identity = node('span', '', 'stock-identity'); const copy = node('span', '', 'stock-copy');
-    copy.append(node('strong', stock.symbol), node('span', stock.companyName));
+    copy.append(node('strong', stock.symbol), node('span', `${stock.companyName} · ${stock.sector}`));
     identity.append(node('span', stock.symbol.slice(0, 2), 'stock-monogram'), copy);
-    const pricing = node('span', '', 'stock-pricing'); const change = (stock.price - stock.previousClose) / stock.previousClose * 100;
-    pricing.append(node('strong', money(stock.price)), node('span', stock.active ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%` : 'Suspended', change >= 0 ? 'positive' : 'negative'));
+    const pricing = node('span', '', 'stock-pricing');
+    pricing.append(node('strong', money(stock.price)), node('span', stock.active ? `${stock.priceChange >= 0 ? '+' : ''}${stock.percentageChange.toFixed(2)}%` : 'Suspended', stock.priceChange >= 0 ? 'positive' : 'negative'));
     row.append(identity, pricing); row.addEventListener('click', () => selectStock(stock.symbol)); return row;
   }));
   if (!stocks.length) list.append(node('p', 'No matching stocks. Try another name or symbol.', 'empty-cell'));
+}
+function renderStockDetails() {
+  if (!$('stock-detail-company') || !market) return;
+  const stock = market.stocks.find(item => item.symbol === symbol);
+  if (!stock) return;
+  const request = ++stockDetailsRequest;
+  if (stockHistorySymbol !== stock.symbol) {
+    stockHistorySymbol = stock.symbol;
+    stockHistoryFingerprint = '';
+    priceChart?.destroy(); priceChart = null;
+    const emptyState = $('stock-chart-empty');
+    const container = $('stock-chart-container');
+    if (emptyState) { emptyState.textContent = 'Loading historical prices…'; emptyState.hidden = false; }
+    if (container) container.hidden = true;
+  }
+  set('stock-detail-company', stock.companyName);
+  set('stock-detail-symbol', stock.symbol);
+  set('stock-detail-sector', stock.sector);
+  set('stock-detail-price', money(stock.price));
+  set('stock-detail-previous', money(stock.previousClose));
+  set('stock-detail-change', `${stock.priceChange >= 0 ? '+' : ''}${money(stock.priceChange)} (${stock.percentageChange >= 0 ? '+' : ''}${stock.percentageChange.toFixed(2)}%)`);
+  const status = $('stock-detail-status');
+  if (status) { status.textContent = stock.status; status.className = `status-badge ${stock.active ? 'executed' : 'rejected'}`; }
+  const detailLink = $<HTMLAnchorElement>('stock-full-details');
+  if (detailLink) detailLink.href = `/stocks?symbol=${encodeURIComponent(stock.symbol)}`;
+  void Promise.all([
+    api<StockResponse>(`/api/stocks/${encodeURIComponent(stock.symbol)}`, {}, actor),
+    api<StockPrice[]>(`/api/stocks/${encodeURIComponent(stock.symbol)}/history`, {}, actor),
+  ]).then(([detail, history]) => {
+    if (request !== stockDetailsRequest || symbol !== stock.symbol) return;
+    set('stock-detail-company', detail.companyName);
+    set('stock-detail-price', money(detail.currentPrice));
+    set('stock-detail-previous', money(detail.previousClose));
+    set('stock-detail-change', `${detail.priceChange >= 0 ? '+' : ''}${money(detail.priceChange)} (${detail.percentageChange >= 0 ? '+' : ''}${detail.percentageChange.toFixed(2)}%)`);
+    const fingerprint = JSON.stringify(history);
+    if (fingerprint === stockHistoryFingerprint) return;
+    stockHistoryFingerprint = fingerprint;
+    const emptyState = $('stock-chart-empty');
+    const container = $('stock-chart-container');
+    const canvas = $<HTMLCanvasElement>('stock-price-chart');
+    const chartError = $('stock-chart-error');
+    alertAt('stock-chart-error', null);
+    if (!emptyState || !container || !canvas) return;
+    priceChart?.destroy(); priceChart = null;
+    if (!history.length) {
+      emptyState.textContent = 'No historical prices have been recorded for this stock yet.';
+      emptyState.hidden = false; container.hidden = true;
+      set('stock-chart-caption', 'No recorded updates');
+      return;
+    }
+    emptyState.hidden = true; container.hidden = false;
+    set('stock-chart-caption', `${history.length} recorded price${history.length === 1 ? '' : 's'}`);
+    priceChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: history.map(point => time(point.timestamp)),
+        datasets: [{ label: 'Price', data: history.map(point => point.price), borderColor: '#276148', backgroundColor: 'rgba(39, 97, 72, 0.12)', fill: true, tension: 0.25, pointRadius: 2, pointHoverRadius: 4 }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => money(Number(context.raw)) } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } },
+          y: { border: { display: false }, ticks: { callback: value => `₹${value}` } },
+        },
+      },
+    });
+    if (chartError) chartError.hidden = true;
+  }).catch(error => {
+    if (request !== stockDetailsRequest) return;
+    const emptyState = $('stock-chart-empty');
+    if (emptyState) emptyState.textContent = 'Historical prices are unavailable right now.';
+    alertAt('stock-chart-error', message(error));
+  });
 }
 function selectStock(next: string) {
   symbol = next; invalidateReview();
   const stock = market?.stocks.find(s => s.symbol === symbol);
   if (stock && input('limit-price')) input('limit-price').value = stock.price.toFixed(2);
-  renderStocks(); estimate();
+  renderStocks(); renderStockDetails(); estimate();
 }
 function setSide(next: Side) {
   side = next; invalidateReview();

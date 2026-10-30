@@ -155,6 +155,8 @@ mvn test
 =======
 # Ledger — Member 3: Order Management & Trading Engine
 
+Stock and market management APIs, integration boundaries, and UI details are documented in [Module 02](docs/MODULE_02.md).
+
 Standalone backend and frontend implementation, developed from the supplied PDF and Member 3 brief. All five requested endpoints and six frontend deliverables are implemented. The project uses Java 21, Spring Boot, Maven, Astro, REST/JSON, in-memory collections, BigDecimal and JUnit 5.
 
 The PDF requests a console application; the explicit team brief supersedes that delivery format. This module provides REST and Astro screens. Account, stock and holding adapters are included so Member 3 can run before Members 1 and 2 are integrated. Other members' registration, deposits, withdrawals, watchlists, alerts and portfolio modules are outside this delivery.

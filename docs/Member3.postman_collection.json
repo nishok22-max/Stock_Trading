@@ -79,6 +79,17 @@
       "name": "Fractional quantity returns 400",
       "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Invalid whole quantity', () => pm.response.to.have.status(400));"]}}],
       "request": {"method": "POST", "header": [{"key": "X-User-Id", "value": "{{userId}}"}, {"key": "Content-Type", "value": "application/json"}], "url": "{{baseUrl}}/api/orders", "body": {"mode": "raw", "raw": "{\"symbol\":\"TCS\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":1.5}", "options": {"raw": {"language": "json"}}}}
+    },
+    {
+      "name": "Stock and market management",
+      "item": [
+        {"name": "List stocks", "request": {"method": "GET", "url": "{{baseUrl}}/api/stocks"}},
+        {"name": "Search stocks", "request": {"method": "GET", "url": "{{baseUrl}}/api/stocks/search?q=Tata"}},
+        {"name": "Stock details", "request": {"method": "GET", "url": "{{baseUrl}}/api/stocks/TCS"}},
+        {"name": "Current stock price", "request": {"method": "GET", "url": "{{baseUrl}}/api/stocks/TCS/price"}},
+        {"name": "Stock price history", "request": {"method": "GET", "url": "{{baseUrl}}/api/stocks/TCS/history"}},
+        {"name": "Market status", "request": {"method": "GET", "url": "{{baseUrl}}/api/market/status"}}
+      ]
     }
   ]
 }

@@ -1,6 +1,8 @@
 package com.stock.trading;
 
 import com.stock.trading.port.*;
+import com.stock.trading.service.MarketDataService;
+import com.stock.trading.service.MarketService;
 import com.stock.trading.store.TradingUnitOfWork;
 import com.stock.trading.store.TradingUnitOfWork.HoldingKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,12 +31,14 @@ class TradingApiTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired TradingUnitOfWork work;
+    @Autowired MarketDataService marketData;
+    @Autowired MarketService marketService;
     @TestConfiguration static class TimeConfiguration {
         @Bean @Primary Clock testClock() { return Clock.fixed(Instant.parse("2026-10-30T04:30:00Z"),ZoneOffset.UTC); }
     }
     @BeforeEach void seed() {
         work.execute(()->{
-            var s=work.state(); s.accounts.clear();s.holdings.clear();s.orders.clear();s.trades.clear();s.stocks.clear();s.requests.clear();
+            var s=work.state(); s.accounts.clear();s.holdings.clear();s.orders.clear();s.trades.clear();s.stocks.clear();s.stockPrices.clear();s.requests.clear();
             var id=UUID.fromString(USER);
             s.accounts.put(id,new AccountSnapshot(id,"API Trader",true,false,new BigDecimal("10000.00"),new BigDecimal("0.00")));
             s.holdings.put(new HoldingKey(id,"TCS"),new HoldingSnapshot(id,"TCS",10,0,new BigDecimal("80.00")));
@@ -81,6 +85,64 @@ class TradingApiTest {
     void malformedRequestsReturnStructured400(String body) throws Exception {
         mvc.perform(order(body)).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
     }
+        @Test void stockListingSearchDetailsPriceAndEmptyHistoryAreAvailable() throws Exception {
+        mvc.perform(get("/api/stocks")).andExpect(status().isOk()).andExpect(jsonPath("$[0].symbol").value("TCS"));
+        mvc.perform(get("/api/stocks/search").param("q","tata")).andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].companyName").value("Tata Consultancy Services"));
+        mvc.perform(get("/api/stocks/search").param("q","cs")).andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].symbol").value("TCS"));
+        mvc.perform(get("/api/stocks/TCS")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.priceChange").value(0)).andExpect(jsonPath("$.percentageChange").value(0))
+            .andExpect(jsonPath("$.status").value("ACTIVE"));
+        mvc.perform(get("/api/stocks/TCS/price")).andExpect(status().isOk()).andExpect(jsonPath("$.currentPrice").value(100));
+        mvc.perform(get("/api/stocks/TCS/history")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(get("/api/stocks/UNKNOWN")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/stocks/search")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+        }
+        @Test void priceUpdatesAppendChronologicalHistoryAndEnforceDailyBand() throws Exception {
+        var firstTime=Instant.parse("2026-10-30T04:31:00Z");
+        var secondTime=Instant.parse("2026-10-30T04:32:00Z");
+        marketData.updatePrice("TCS",new BigDecimal("105.00"),firstTime);
+        marketData.updatePrice("TCS",new BigDecimal("110.00"),secondTime);
+        mvc.perform(get("/api/stocks/TCS/history")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].previousPrice").value(100)).andExpect(jsonPath("$[1].price").value(110));
+        assertThatThrownBy(()->marketData.updatePrice("TCS",new BigDecimal("110.01"),secondTime.plusSeconds(60)))
+            .isInstanceOf(com.stock.trading.exception.TradingException.class).hasMessageContaining("10% of the previous close");
+        }
+        @Test void stockCreationValidatesSectorAndRejectsDuplicateSymbols() {
+        var created=marketData.createStock("acme","Acme Systems","Banking",new BigDecimal("50.00"),new BigDecimal("48.00"),true);
+        assertThat(created.symbol()).isEqualTo("ACME");
+        assertThat(created.sector()).isEqualTo("BANKING");
+        assertThatThrownBy(()->marketData.createStock("ACME","Duplicate","IT",new BigDecimal("10.00"),new BigDecimal("10.00"),true))
+            .isInstanceOf(com.stock.trading.exception.TradingException.class).hasMessageContaining("already exists");
+        assertThatThrownBy(()->marketData.createStock("BAD","Bad Sector","FINANCE",new BigDecimal("10.00"),new BigDecimal("10.00"),true))
+            .isInstanceOf(com.stock.trading.exception.TradingException.class).hasMessageContaining("Sector must be");
+        assertThatThrownBy(()->marketData.createStock("BAD2","Bad Price","IT",new BigDecimal("10.001"),new BigDecimal("10.00"),true))
+            .isInstanceOf(com.stock.trading.exception.TradingException.class).hasMessageContaining("positive with at most two decimal places");
+        }
+        @Test void marketStatusUsesWeekdayBoundariesAndNextOpeningTime() {
+        var beforeOpen=marketService.status(Instant.parse("2026-10-30T03:44:59Z"));
+        assertThat(beforeOpen.open()).isFalse();
+        assertThat(beforeOpen.nextOpeningTime()).isEqualTo(Instant.parse("2026-10-30T03:45:00Z"));
+        assertThat(marketService.status(Instant.parse("2026-10-30T03:45:00Z")).open()).isTrue();
+        var atClose=marketService.status(Instant.parse("2026-10-30T10:00:00Z"));
+        assertThat(atClose.open()).isFalse();
+        assertThat(atClose.nextOpeningTime()).isEqualTo(Instant.parse("2026-11-02T03:45:00Z"));
+        assertThat(marketService.status(Instant.parse("2026-10-31T12:00:00Z")).nextOpeningTime())
+            .isEqualTo(Instant.parse("2026-11-02T03:45:00Z"));
+        }
+    @Test void marketStatusEndpointReturnsServerClockAndOpenState() throws Exception {
+        mvc.perform(get("/api/market/status")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.open").value(true))
+                .andExpect(jsonPath("$.serverTime").value("2026-10-30T04:30:00Z"))
+                .andExpect(jsonPath("$.nextOpeningTime").value(org.hamcrest.Matchers.nullValue()));
+    }
+        @Test void suspendingStockKeepsQuoteAndExistingHoldingVisible() throws Exception {
+        marketData.updateStatus("TCS",false);
+        mvc.perform(get("/api/stocks/TCS")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SUSPENDED"));
+        mvc.perform(get("/api/trading/account").header("X-User-Id",USER)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.holdings[0].symbol").value("TCS"));
+        }
     @Test void businessRejectionIsRecordedAndVisible() throws Exception {
         mvc.perform(order(buy().replace("\"quantity\":2","\"quantity\":1000"))).andExpect(status().isCreated()).andExpect(jsonPath("$.status").value("REJECTED")).andExpect(jsonPath("$.reason").value(org.hamcrest.Matchers.containsString("INSUFFICIENT_FUNDS")));
         mvc.perform(get("/api/orders/user/"+USER).header("X-User-Id",USER)).andExpect(jsonPath("$.length()").value(1));

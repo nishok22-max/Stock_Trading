@@ -23,7 +23,7 @@ public class ApiExceptionHandler {
         String message=ex.getBindingResult().getAllErrors().stream().map(e->e.getDefaultMessage()).distinct().sorted().reduce((a,b)->a+"; "+b).orElse("Invalid request");
         return error(HttpStatus.BAD_REQUEST,"INVALID_REQUEST",message,request);
     }
-    @ExceptionHandler({HttpMessageNotReadableException.class,MissingRequestHeaderException.class,MethodArgumentTypeMismatchException.class})
+    @ExceptionHandler({HttpMessageNotReadableException.class,MissingRequestHeaderException.class,MissingServletRequestParameterException.class,MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ApiError> malformed(Exception ex,HttpServletRequest request) { return error(HttpStatus.BAD_REQUEST,"INVALID_REQUEST","Provide valid JSON, enum values, UUIDs, required X-User-Id, and a whole-number quantity",request); }
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiError> missing(NoResourceFoundException ex,HttpServletRequest request) { return error(HttpStatus.NOT_FOUND,"NOT_FOUND","Endpoint not found",request); }
