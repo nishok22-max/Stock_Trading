@@ -1,0 +1,14 @@
+.tools/
+.tools-*.zip
+backend/target/
+frontend/node_modules/
+frontend/dist/
+frontend/.astro/
+frontend/test-results/
+frontend/playwright-report/
+tmp/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
