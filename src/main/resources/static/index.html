@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockTrade Pro | User & Account Management (Module 1)</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <a href="#" class="brand" onclick="switchTab('overview')">
+      <div class="brand-icon">ST</div>
+      <div>
+        <span class="brand-title">StockTrade Pro</span>
+        <span class="brand-badge">Module 1 : User & Account</span>
+      </div>
+    </a>
+
+    <!-- Center Tabs (for logged-in users) -->
+    <div id="nav-auth" class="nav-center hidden">
+      <button class="nav-tab-btn active" data-tab="overview">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h7v9H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 16h7v5H3z"/></svg>
+        Overview
+      </button>
+      <button class="nav-tab-btn" data-tab="funds">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Deposit & Withdraw
+      </button>
+      <button class="nav-tab-btn" data-tab="transactions">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+        History
+      </button>
+    </div>
+
+    <!-- Right Side (User Profile & Session or Auth Buttons) -->
+    <div class="nav-right">
+      <div id="nav-unauth" class="flex gap-2">
+        <button class="btn btn-secondary btn-sm" data-tab="login">Sign In</button>
+        <button class="btn btn-primary btn-sm" data-tab="register">Register</button>
+      </div>
+
+      <div id="nav-auth-user" class="hidden user-badge">
+        <div id="user-avatar-initial" class="user-avatar">R</div>
+        <span id="user-display-name" style="font-weight: 500;">User</span>
+        <button id="btn-logout" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- ==================== VIEW: LOGIN ==================== -->
+    <section id="view-login" class="card" style="max-width: 480px; margin: 2rem auto;">
+      <div class="card-header">
+        <h2 class="card-title">Sign In to Your Account</h2>
+      </div>
+
+      <form id="form-login">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" placeholder="name@example.com" required value="rahul@example.com">
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" required value="Password@123">
+        </div>
+
+        <button type="submit" id="btn-submit-login" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+          Sign In
+        </button>
+      </form>
+
+      <p style="text-align: center; margin-top: 1rem; font-size: 0.88rem; color: var(--text-secondary);">
+        Don't have an account? <a href="#" id="btn-to-register" style="color: var(--accent-primary); text-decoration: none; font-weight: 500;">Register here</a>
+      </p>
+
+      <!-- Demo Accounts Box for Rapid Evaluation -->
+      <div class="demo-accounts">
+        <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">
+          One-Click Demo Test Accounts:
+        </div>
+        <div class="demo-pills">
+          <div class="demo-pill" data-demo-email="rahul@example.com" data-demo-pass="Password@123">
+            <span class="demo-pill-title">Rahul Sharma</span>
+            <span class="demo-pill-sub">KYC Approved • ₹50,000</span>
+          </div>
+          <div class="demo-pill" data-demo-email="priya@example.com" data-demo-pass="Password@123">
+            <span class="demo-pill-title">Priya Patel</span>
+            <span class="demo-pill-sub">KYC Pending • ₹25,000</span>
+          </div>
+          <div class="demo-pill" data-demo-email="amit@example.com" data-demo-pass="Password@123">
+            <span class="demo-pill-title">Amit Verma</span>
+            <span class="demo-pill-sub">Blocked Account • ₹10,000</span>
+          </div>
+          <div class="demo-pill" data-demo-email="admin@stocktrade.com" data-demo-pass="Password@123">
+            <span class="demo-pill-title">Admin User</span>
+            <span class="demo-pill-sub">System Administrator</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW: REGISTRATION ==================== -->
+    <section id="view-register" class="card hidden" style="max-width: 640px; margin: 2rem auto;">
+      <div class="card-header">
+        <h2 class="card-title">Create a Trading Account</h2>
+      </div>
+
+      <form id="form-register">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-name">Full Name *</label>
+            <input type="text" id="reg-name" placeholder="John Doe" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email Address *</label>
+            <input type="email" id="reg-email" placeholder="john@example.com" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-password">Password (min 6 chars) *</label>
+            <input type="password" id="reg-password" placeholder="••••••••" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label for="reg-phone">Phone Number (10 digits) *</label>
+            <input type="text" id="reg-phone" placeholder="9876543210" pattern="^[0-9]{10}$" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-pan">PAN Number (Format: ABCDE1234F) *</label>
+            <input type="text" id="reg-pan" placeholder="ABCDE1234F" pattern="^[A-Za-z]{5}[0-9]{4}[A-Za-z]$" required style="text-transform: uppercase;">
+            <div class="input-hint">Unique 10-character PAN number is mandatory for trading account creation.</div>
+          </div>
+          <div class="form-group">
+            <label for="reg-bank">Linked Bank Account</label>
+            <input type="text" id="reg-bank" placeholder="HDFC-100293 (optional, auto-generated if blank)">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-deposit">Initial Deposit Amount (Optional)</label>
+          <input type="number" id="reg-deposit" placeholder="1000" min="100" max="100000" step="100">
+          <div class="input-hint">Rule: Minimum Rs. 100, Maximum Rs. 1,00,000 per transaction.</div>
+        </div>
+
+        <button type="submit" id="btn-submit-register" class="btn btn-primary" style="width: 100%; margin-top: 0.75rem;">
+          Complete Registration
+        </button>
+      </form>
+
+      <p style="text-align: center; margin-top: 1.25rem; font-size: 0.88rem; color: var(--text-secondary);">
+        Already registered? <a href="#" id="btn-to-login" style="color: var(--accent-primary); text-decoration: none; font-weight: 500;">Sign in here</a>
+      </p>
+    </section>
+
+    <!-- ==================== VIEW: ACCOUNT OVERVIEW ==================== -->
+    <section id="view-overview" class="hidden">
+      <!-- Hero Balances Grid -->
+      <div class="hero-balance-grid">
+        <div class="balance-card available">
+          <div class="balance-label">
+            <span>Available Funds</span>
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div id="ov-available" class="balance-amount">₹0.00</div>
+          <div class="balance-hint">Funds available for trading or withdrawal</div>
+        </div>
+
+        <div class="balance-card blocked">
+          <div class="balance-label">
+            <span>Blocked Funds</span>
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div id="ov-blocked" class="balance-amount">₹0.00</div>
+          <div class="balance-hint">Locked in pending buy limit/market orders</div>
+        </div>
+
+        <div class="balance-card">
+          <div class="balance-label">
+            <span>Total Account Balance</span>
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+          </div>
+          <div id="ov-total" class="balance-amount">₹0.00</div>
+          <div class="balance-hint">Total funds = Available + Blocked</div>
+        </div>
+      </div>
+
+      <!-- Account & User Details Grid -->
+      <div style="display: grid; grid-template-columns: 2fr 1.3fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        
+        <!-- Left: Account & KYC Status Card -->
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <h3 class="card-title">Trading Account Information</h3>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span id="ov-account-status" class="badge badge-success">Active</span>
+              <span id="ov-kyc-status" class="badge badge-success">KYC Approved</span>
+              <span id="ov-trade-status" class="badge badge-success">Trading Enabled</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; font-size: 0.9rem;">
+            <div>
+              <div style="color: var(--text-muted); font-size: 0.78rem;">User ID</div>
+              <div id="ov-user-id" style="font-weight: 600; color: var(--text-primary);">USR-1001</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 0.78rem;">Trading Account ID</div>
+              <div id="ov-account-id" style="font-weight: 600; color: var(--text-primary);">ACC-5001</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 0.78rem;">PAN Number</div>
+              <div id="ov-pan" style="font-weight: 600; color: var(--text-primary);">ABCDE1234F</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 0.78rem;">Linked Bank Account</div>
+              <div id="ov-bank" style="font-weight: 600; color: var(--text-primary);">HDFC-892104</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 0.78rem;">Registered Phone</div>
+              <div id="ov-phone" style="font-weight: 600; color: var(--text-primary);">9876543210</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 0.78rem;">Email Address</div>
+              <div id="ov-email" style="font-weight: 600; color: var(--text-primary);">rahul@example.com</div>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+            <button class="btn btn-primary btn-sm" onclick="switchTab('funds')">
+              + Deposit Funds
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('funds')">
+              - Withdraw Funds
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('transactions')">
+              View History
+            </button>
+            <button id="btn-refresh-balance" class="btn btn-secondary btn-sm" title="Refresh live balances">
+              &#8635; Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Admin Simulation Controls -->
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <h3 class="card-title">Admin / Tester Simulation</h3>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Test the business rules defined in Module 1: Admin KYC approval and Account blocking.
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <button id="btn-approve-kyc" class="btn btn-success btn-sm">
+              &#10003; Approve KYC for this User
+            </button>
+            <button id="btn-toggle-block" class="btn btn-danger btn-sm">
+              Block / Unblock Account
+            </button>
+          </div>
+          <div style="margin-top: 1rem; font-size: 0.78rem; color: var(--text-secondary); background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-sm);">
+            <strong>Rule:</strong> "A user can trade only after an Admin approves KYC."<br>
+            <strong>Rule:</strong> "An Admin can Block an account. A Blocked account cannot place buy orders or withdraw funds."
+          </div>
+        </div>
+      </div>
+
+      <!-- Watchlist Section (Module 1 Spec: "A user can keep up to 20 stocks in a watchlist") -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Stock Watchlist</h3>
+          <span id="watchlist-count" class="badge badge-info">0 / 20 stocks</span>
+        </div>
+        <div id="watchlist-tags" class="watchlist-container">
+          <!-- Dynamic stock pills -->
+        </div>
+
+        <form id="form-add-watchlist" style="margin-top: 1rem; display: flex; gap: 0.75rem; max-width: 360px;">
+          <input type="text" id="watchlist-symbol" placeholder="Symbol (e.g. TCS, INFY)" style="text-transform: uppercase;" required>
+          <button type="submit" class="btn btn-secondary btn-sm">+ Add Stock</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW: DEPOSIT & WITHDRAWAL FORMS ==================== -->
+    <section id="view-funds" class="hidden">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.75rem;">
+        
+        <!-- Deposit Form Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Deposit Funds</h3>
+            <span class="badge badge-success">+ Add Money</span>
+          </div>
+
+          <div style="background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; font-size: 0.85rem;">
+            <span style="color: var(--text-muted);">From Linked Account:</span>
+            <strong id="deposit-source-bank" style="color: var(--text-primary); margin-left: 0.5rem;">HDFC-892104</strong>
+          </div>
+
+          <form id="form-deposit">
+            <div class="form-group">
+              <label for="deposit-amount">Deposit Amount (₹) *</label>
+              <input type="number" id="deposit-amount" placeholder="e.g. 5000" min="100" max="100000" step="50" required>
+              <div class="input-hint">Rule: Minimum Rs. 100, Maximum Rs. 1,00,000 per transaction.</div>
+
+              <!-- Quick amounts -->
+              <div class="quick-amounts">
+                <button type="button" class="quick-amount-chip" data-deposit="500">+ ₹500</button>
+                <button type="button" class="quick-amount-chip" data-deposit="1000">+ ₹1,000</button>
+                <button type="button" class="quick-amount-chip" data-deposit="5000">+ ₹5,000</button>
+                <button type="button" class="quick-amount-chip" data-deposit="25000">+ ₹25,000</button>
+                <button type="button" class="quick-amount-chip" data-deposit="100000">+ ₹1,00,000</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="deposit-desc">Transaction Note (Optional)</label>
+              <input type="text" id="deposit-desc" placeholder="e.g. Regular monthly investment funds">
+            </div>
+
+            <button type="submit" id="btn-submit-deposit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+              Deposit Funds
+            </button>
+          </form>
+        </div>
+
+        <!-- Withdrawal Form Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Withdraw Funds</h3>
+            <span class="badge badge-warning">- Transfer Money</span>
+          </div>
+
+          <div style="background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; font-size: 0.85rem; display: flex; justify-content: space-between;">
+            <div>
+              <span style="color: var(--text-muted);">Available to Withdraw:</span>
+              <strong id="withdraw-avail-display" style="color: var(--success); margin-left: 0.4rem;">₹0.00</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted);">To Bank:</span>
+              <strong id="withdraw-dest-bank" style="color: var(--text-primary); margin-left: 0.4rem;">HDFC-892104</strong>
+            </div>
+          </div>
+
+          <form id="form-withdraw">
+            <div class="form-group">
+              <label for="withdraw-amount">Withdrawal Amount (₹) *</label>
+              <input type="number" id="withdraw-amount" placeholder="e.g. 2000" min="1" step="50" required>
+              <div class="input-hint">Rule: You can withdraw only Available funds. Balance can never be negative.</div>
+
+              <!-- Quick percent chips -->
+              <div class="quick-amounts">
+                <button type="button" class="quick-amount-chip" data-withdraw-pct="0.25">25%</button>
+                <button type="button" class="quick-amount-chip" data-withdraw-pct="0.50">50%</button>
+                <button type="button" class="quick-amount-chip" data-withdraw-pct="0.75">75%</button>
+                <button type="button" class="quick-amount-chip" data-withdraw-pct="1.00">100% (All)</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="withdraw-desc">Transaction Note (Optional)</label>
+              <input type="text" id="withdraw-desc" placeholder="e.g. Withdrawal to savings bank">
+            </div>
+
+            <button type="submit" id="btn-submit-withdraw" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;">
+              Withdraw Funds
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== VIEW: TRANSACTION HISTORY ==================== -->
+    <section id="view-transactions" class="card hidden">
+      <div class="card-header">
+        <h2 class="card-title">Transaction History</h2>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button class="nav-tab-btn txn-filter-btn active" data-filter="ALL">All</button>
+          <button class="nav-tab-btn txn-filter-btn" data-filter="DEPOSIT">Deposits</button>
+          <button class="nav-tab-btn txn-filter-btn" data-filter="WITHDRAWAL">Withdrawals</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Txn ID</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Balance After</th>
+              <th>Status</th>
+              <th>Timestamp</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody id="txn-table-body">
+            <!-- Dynamic transactions -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Footer -->
+  <footer>
+    <p>Stock Trading Platform • Module 1 (User, Account and Funds Management) • Spring Boot + Vanilla JS</p>
+  </footer>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
+
