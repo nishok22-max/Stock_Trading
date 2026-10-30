@@ -2,9 +2,11 @@
 import DeskLayout from '../layouts/DeskLayout.astro';
 import MarketList from '../components/MarketList.astro';
 import OrderTicket from '../components/OrderTicket.astro';
+import StockDetails from '../components/StockDetails.astro';
 import HoldingsTable from '../components/HoldingsTable.astro';
 ---
 <DeskLayout title="Trading desk" page="desk" description="A clear view of the market. A considered next move.">
   <div class="trading-grid"><MarketList /><OrderTicket /></div>
+  <StockDetails />
   <HoldingsTable />
 </DeskLayout>

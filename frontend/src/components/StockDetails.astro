@@ -1,0 +1,17 @@
+<section class="panel stock-details" aria-labelledby="stock-detail-heading">
+  <div class="panel-heading stock-detail-heading">
+    <div><p class="eyebrow">STOCK PROFILE</p><h2 id="stock-detail-heading"><span id="stock-detail-company">Loading stock…</span></h2></div>
+    <a id="stock-full-details" class="button secondary stock-open-link" href="/stocks?symbol=TCS">Full details <span aria-hidden="true">↗</span></a>
+  </div>
+  <div class="stock-detail-summary" aria-live="polite">
+    <div><span class="metric-label">Symbol · sector</span><strong id="stock-detail-symbol">—</strong><span id="stock-detail-sector" class="detail-subline">—</span></div>
+    <div><span class="metric-label">Current price</span><strong id="stock-detail-price" class="detail-price">—</strong><span id="stock-detail-status" class="status-badge">—</span></div>
+    <div><span class="metric-label">Previous close</span><strong id="stock-detail-previous">—</strong><span id="stock-detail-change" class="detail-subline">—</span></div>
+  </div>
+  <div class="stock-chart-wrap">
+    <div class="stock-chart-title"><div><p class="eyebrow">PRICE HISTORY</p><h3>Recorded market prices</h3></div><span id="stock-chart-caption" class="quiet-tag">No recorded updates</span></div>
+    <div id="stock-chart-empty" class="chart-empty">No historical prices have been recorded for this stock yet.</div>
+    <p id="stock-chart-error" class="alert error" hidden></p>
+    <div class="stock-chart-canvas" id="stock-chart-container" hidden><canvas id="stock-price-chart" aria-label="Historical stock prices"></canvas></div>
+  </div>
+</section>

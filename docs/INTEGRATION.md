@@ -29,6 +29,8 @@ Price update procedure:
 2. After that transaction returns, invoke `TradingService.processPending()`. It starts independent atomic transactions for each pending order and uses the latest quote.
 3. Keep the scheduler enabled as a fallback for quote updates and expiry. Never call the processor from inside another `execute` callback; nested transactions are deliberately rejected.
 
+The Member 2 read APIs are `/api/stocks`, `/api/stocks/{symbol}`, `/api/stocks/search?q=...`, `/api/stocks/{symbol}/price`, `/api/stocks/{symbol}/history`, and `/api/market/status`. Price history is committed with each successful quote mutation in the shared unit of work. The currently available HTTP price mutation is demo-only; do not treat it as an authenticated Admin route. The checked-in project does not yet contain a shared Admin principal, so stock creation and status/price administration must be wired to Member 1's authorization contract before those HTTP operations are exposed.
+
 The demo quote endpoint illustrates that order. Pending orders process in creation-time order, with order ID as a deterministic tie-breaker. A snapshot of pending IDs may include orders another request has cancelled; each processor rechecks current status under the lock and safely skips terminal orders.
 
 ## Failure and concurrency contract

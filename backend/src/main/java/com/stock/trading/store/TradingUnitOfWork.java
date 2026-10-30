@@ -17,15 +17,17 @@ public class TradingUnitOfWork {
         public final Map<UUID, AccountSnapshot> accounts;
         public final Map<HoldingKey, HoldingSnapshot> holdings;
         public final Map<String, StockQuote> stocks;
+        public final Map<String, List<StockPrice>> stockPrices;
         public final Map<UUID, Order> orders;
         public final Map<UUID, Trade> trades;
         public final Map<RequestKey, IdempotencyEntry> requests;
         private State() {
-            accounts=new HashMap<>(); holdings=new HashMap<>(); stocks=new HashMap<>();
+            accounts=new HashMap<>(); holdings=new HashMap<>(); stocks=new HashMap<>(); stockPrices=new HashMap<>();
             orders=new HashMap<>(); trades=new HashMap<>(); requests=new HashMap<>();
         }
         private State(State old) {
             accounts=new HashMap<>(old.accounts); holdings=new HashMap<>(old.holdings); stocks=new HashMap<>(old.stocks);
+            stockPrices=new HashMap<>(); old.stockPrices.forEach((symbol, prices)->stockPrices.put(symbol,new ArrayList<>(prices)));
             orders=new HashMap<>(old.orders); trades=new HashMap<>(old.trades); requests=new HashMap<>(old.requests);
         }
     }
