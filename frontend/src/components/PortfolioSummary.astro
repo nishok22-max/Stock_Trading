@@ -1,0 +1,92 @@
+---
+interface Props {
+  investedValue?: number;
+  currentValue?: number;
+  unrealizedPnL?: number;
+  returnPercentage?: number;
+  isMockData?: boolean;
+}
+
+const {
+  investedValue = 0,
+  currentValue = 0,
+  unrealizedPnL = 0,
+  returnPercentage = 0,
+  isMockData = false
+} = Astro.props;
+
+const isProfit = unrealizedPnL >= 0;
+const formattedInvested = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(investedValue);
+const formattedCurrent = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentValue);
+const formattedPnL = (isProfit ? "+" : "") + new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(unrealizedPnL);
+const formattedReturn = (isProfit ? "+" : "") + returnPercentage.toFixed(2) + "%";
+---
+
+<div class="summary-wrapper">
+  {isMockData && (
+    <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; padding: 0.6rem 1rem; border-radius: 8px; margin-bottom: 1.25rem; font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem;">
+      <span>⚠️</span>
+      <span><strong>Offline Mode:</strong> Displaying cached fallback data. Start the Spring Boot backend on <code>localhost:8080</code> for live synchronization.</span>
+    </div>
+  )}
+
+  <div class="summary-grid">
+    <!-- Card 1: Total Invested Value -->
+    <div class="card summary-card">
+      <div class="summary-header">
+        <span>Total Invested</span>
+        <div class="summary-icon">💼</div>
+      </div>
+      <div class="summary-value" id="summary-invested">{formattedInvested}</div>
+      <div class="summary-subtext">
+        <span style="color: var(--text-muted);">Cumulative cost basis</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Current Portfolio Value -->
+    <div class="card summary-card">
+      <div class="summary-header">
+        <span>Current Value</span>
+        <div class="summary-icon">🌐</div>
+      </div>
+      <div class="summary-value" id="summary-current">{formattedCurrent}</div>
+      <div class="summary-subtext">
+        <span style="color: var(--text-muted);">Real-time market valuation</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Unrealized Profit / Loss -->
+    <div class={`card summary-card ${isProfit ? 'profit' : 'loss'}`}>
+      <div class="summary-header">
+        <span>Unrealized P&L</span>
+        <div class="summary-icon">{isProfit ? '📈' : '📉'}</div>
+      </div>
+      <div class={`summary-value ${isProfit ? 'text-profit' : 'text-loss'}`} id="summary-pnl">
+        {formattedPnL}
+      </div>
+      <div class="summary-subtext">
+        <span class={isProfit ? 'badge-profit' : 'badge-loss'}>
+          {isProfit ? 'PROFIT' : 'LOSS'}
+        </span>
+        <span style="color: var(--text-muted);">Current − Invested</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Total Return Percentage -->
+    <div class={`card summary-card ${isProfit ? 'profit' : 'loss'}`}>
+      <div class="summary-header">
+        <span>Total Return</span>
+        <div class="summary-icon">🎯</div>
+      </div>
+      <div class={`summary-value ${isProfit ? 'text-profit' : 'text-loss'}`} id="summary-return">
+        {formattedReturn}
+      </div>
+      <div class="summary-subtext">
+        <span class={isProfit ? 'badge-profit' : 'badge-loss'}>
+          {formattedReturn}
+        </span>
+        <span style="color: var(--text-muted);">(P&L / Invested) × 100</span>
+      </div>
+    </div>
+  </div>
+</div>

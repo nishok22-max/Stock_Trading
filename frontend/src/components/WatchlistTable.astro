@@ -1,0 +1,170 @@
+---
+interface WatchlistItem {
+  id: number;
+  userId: number;
+  stockSymbol: string;
+  currentPrice: number;
+  addedAt: string;
+}
+
+interface Props {
+  watchlist?: WatchlistItem[];
+  userId?: number;
+}
+
+const { watchlist = [], userId = 101 } = Astro.props;
+
+const formatINR = (val: number) =>
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
+---
+
+<div class="watchlist-section">
+  <!-- Add Stock Form Card -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="table-header-row" style="margin-bottom: 0.75rem;">
+      <div>
+        <h3>Track New Stock</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+          Add a stock symbol from Member 2's market catalog to your personal watchlist
+        </p>
+      </div>
+    </div>
+
+    <form id="add-watchlist-form" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <input
+        type="text"
+        id="stock-symbol-input"
+        placeholder="Enter stock symbol (e.g. TCS, INFY, NVDA, AAPL)"
+        class="input-field"
+        style="flex: 1; min-width: 260px; text-transform: uppercase;"
+        required
+      />
+      <button type="submit" class="btn btn-primary" id="add-watchlist-btn">
+        <span>➕ Add to Watchlist</span>
+      </button>
+    </form>
+    <div id="watchlist-msg" style="margin-top: 0.75rem; font-size: 0.85rem; display: none;"></div>
+  </div>
+
+  <!-- Watchlist Items Table -->
+  <div class="card">
+    <div class="table-header-row">
+      <div>
+        <h3>My Watchlist</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+          Monitored tickers with live price updates
+        </p>
+      </div>
+      <span style="font-size: 0.85rem; color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 0.25rem 0.65rem; border-radius: 6px;">
+        <span id="watchlist-count">{watchlist.length}</span> Tracked
+      </span>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Market Price</th>
+            <th>Tracking Since</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="watchlist-body">
+          {watchlist.length === 0 ? (
+            <tr id="empty-watchlist-row">
+              <td colspan="4" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                Your watchlist is currently empty. Add stocks above to start monitoring.
+              </td>
+            </tr>
+          ) : (
+            watchlist.map((item) => (
+              <tr id={`watchlist-row-${item.stockSymbol}`}>
+                <td>
+                  <div class="stock-cell">
+                    <span class="stock-tag">{item.stockSymbol}</span>
+                  </div>
+                </td>
+                <td class="mono-num" style="font-weight: 600; color: var(--text-primary);">
+                  {formatINR(item.currentPrice || 0)}
+                </td>
+                <td style="font-size: 0.82rem; color: var(--text-muted);">
+                  {new Date(item.addedAt).toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </td>
+                <td style="text-align: right;">
+                  <button
+                    class="btn btn-danger btn-remove-stock"
+                    data-symbol={item.stockSymbol}
+                    data-userid={userId}
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem;"
+                  >
+                    🗑️ Remove
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { addToWatchlist, removeFromWatchlist, DEFAULT_USER_ID } from '../scripts/api.js';
+
+  const form = document.getElementById('add-watchlist-form') as HTMLFormElement;
+  const input = document.getElementById('stock-symbol-input') as HTMLInputElement;
+  const msgEl = document.getElementById('watchlist-msg') as HTMLDivElement;
+
+  function showMessage(text: string, isError = false) {
+    if (!msgEl) return;
+    msgEl.style.display = 'block';
+    msgEl.style.color = isError ? '#ef4444' : '#10b981';
+    msgEl.innerHTML = text;
+    setTimeout(() => {
+      if (msgEl) msgEl.style.display = 'none';
+    }, 4000);
+  }
+
+  // Handle Add Stock
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const symbol = input.value.trim().toUpperCase();
+    if (!symbol) return;
+
+    try {
+      await addToWatchlist(DEFAULT_USER_ID, symbol);
+      showMessage(`✓ Successfully added <strong>${symbol}</strong> to watchlist!`, false);
+      input.value = '';
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (err: any) {
+      showMessage(`✕ ${err.message || 'Error adding stock'}`, true);
+    }
+  });
+
+  // Handle Remove Stock
+  document.querySelectorAll('.btn-remove-stock').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const symbol = btn.getAttribute('data-symbol');
+      if (!symbol) return;
+
+      if (!confirm(`Are you sure you want to remove ${symbol} from your watchlist?`)) {
+        return;
+      }
+
+      try {
+        await removeFromWatchlist(DEFAULT_USER_ID, symbol);
+        const row = document.getElementById(`watchlist-row-${symbol}`);
+        if (row) row.remove();
+        showMessage(`✓ Removed <strong>${symbol}</strong> from watchlist.`, false);
+      } catch (err: any) {
+        showMessage(`✕ ${err.message || 'Error removing stock'}`, true);
+      }
+    });
+  });
+</script>
