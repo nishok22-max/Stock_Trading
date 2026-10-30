@@ -67,3 +67,4 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Logged out successfully", null));
     }
 }
+

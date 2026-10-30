@@ -5,3 +5,4 @@ public enum TransactionStatus {
     FAILED,
     PENDING
 }
+

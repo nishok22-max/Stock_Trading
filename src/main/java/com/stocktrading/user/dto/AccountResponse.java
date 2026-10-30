@@ -195,3 +195,4 @@ public class AccountResponse {
         this.updatedAt = updatedAt;
     }
 }
+

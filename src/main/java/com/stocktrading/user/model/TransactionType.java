@@ -7,3 +7,4 @@ public enum TransactionType {
     FUNDS_RELEASED,
     TRADE_CHARGES
 }
+

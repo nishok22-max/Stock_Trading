@@ -98,3 +98,4 @@ public class BalanceResponse {
         this.canTrade = canTrade;
     }
 }
+

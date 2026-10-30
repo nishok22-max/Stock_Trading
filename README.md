@@ -150,3 +150,4 @@ mvn exec:java -Dexec.mainClass="com.stocktrading.cli.ConsoleApp"
 mvn test
 ```
 **Results:** `Tests run: 24, Failures: 0, Errors: 0, Skipped: 0` (100% Pass)
+

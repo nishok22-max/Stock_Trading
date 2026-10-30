@@ -707,3 +707,4 @@ function showToast(message, type = 'info') {
     }
   }, 4000);
 }
+

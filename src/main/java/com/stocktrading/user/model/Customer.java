@@ -30,3 +30,4 @@ public class Customer extends User {
         return "Retail Trading Customer";
     }
 }
+

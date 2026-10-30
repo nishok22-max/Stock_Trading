@@ -5,3 +5,4 @@ public class AccountBlockedException extends RuntimeException {
         super(message);
     }
 }
+

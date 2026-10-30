@@ -5,3 +5,4 @@ public enum KycStatus {
     APPROVED,
     REJECTED
 }
+

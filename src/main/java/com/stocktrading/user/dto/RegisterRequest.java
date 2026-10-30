@@ -107,3 +107,4 @@ public class RegisterRequest {
         this.initialDeposit = initialDeposit;
     }
 }
+

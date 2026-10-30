@@ -282,3 +282,4 @@ public class ConsoleApp {
         this.currentUserName = null;
     }
 }
+

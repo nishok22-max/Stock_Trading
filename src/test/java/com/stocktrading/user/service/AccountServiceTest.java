@@ -189,3 +189,4 @@ class AccountServiceTest {
         assertEquals(new BigDecimal("2000.00"), account.getBlockedBalance());
     }
 }
+

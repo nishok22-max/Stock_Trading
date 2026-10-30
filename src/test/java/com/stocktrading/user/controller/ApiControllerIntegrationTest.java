@@ -133,3 +133,4 @@ class ApiControllerIntegrationTest {
                 .andExpect(jsonPath("$.error", notNullValue()));
     }
 }
+

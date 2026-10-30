@@ -127,3 +127,4 @@ class AuthServiceTest {
         assertThrows(UserNotFoundException.class, () -> authService.login(loginReq));
     }
 }
+

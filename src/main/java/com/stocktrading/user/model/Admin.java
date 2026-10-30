@@ -30,3 +30,4 @@ public class Admin extends User {
         return "Trading Platform Administrator";
     }
 }
+

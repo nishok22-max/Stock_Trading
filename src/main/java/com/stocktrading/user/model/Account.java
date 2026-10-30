@@ -271,3 +271,4 @@ public class Account {
         return this.kycStatus == KycStatus.APPROVED && this.status == AccountStatus.ACTIVE;
     }
 }
+
